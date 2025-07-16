@@ -18,7 +18,12 @@ import {
   AlertCircle,
   Plus,
   X,
-  Calendar
+  Calendar,
+  Zap,
+  Activity,
+  Target,
+  Award,
+  Users
 } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Fonts, FontSizes } from '@/constants/Fonts';
@@ -207,14 +212,6 @@ export default function DriverDashboard() {
     return now.toTimeString().split(' ')[0].substring(0, 5);
   };
 
-  const setCurrentDateTime = () => {
-    setTripForm({
-      ...tripForm,
-      date: getCurrentDate(),
-      time: getCurrentTime()
-    });
-  };
-
   const recentTrips = [
     {
       id: '1',
@@ -245,13 +242,20 @@ export default function DriverDashboard() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
+        {/* Enhanced Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.greeting}>{currentGreeting},</Text>
-            <Text style={styles.driverName}>
-              {`${driverProfile?.first_name || 'Driver'} ${driverProfile?.last_name || ''}`}
-            </Text>
+            <View style={styles.greetingContainer}>
+              <Text style={styles.greeting}>{currentGreeting},</Text>
+              <View style={styles.driverNameContainer}>
+                <Text style={styles.driverName}>
+                  {`${driverProfile?.first_name || 'Driver'} ${driverProfile?.last_name || ''}`}
+                </Text>
+                <View style={styles.verifiedBadge}>
+                  <CheckCircle size={16} color={Colors.success} />
+                </View>
+              </View>
+            </View>
           </View>
           <View style={styles.headerActions}>
             <TouchableOpacity 
@@ -259,6 +263,7 @@ export default function DriverDashboard() {
               onPress={() => Alert.alert('Notifications', 'Notifications feature coming soon')}
             >
               <Bell size={24} color={Colors.text} />
+              <View style={styles.notificationDot} />
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.iconButton}
@@ -269,7 +274,7 @@ export default function DriverDashboard() {
           </View>
         </View>
 
-        {/* Online Status Card */}
+        {/* Enhanced Online Status Card */}
         <TouchableOpacity style={styles.statusCard} onPress={toggleOnlineStatus}>
           <LinearGradient
             colors={isOnline ? [Colors.primary, Colors.secondary] : [Colors.surface, Colors.surface]}
@@ -278,10 +283,13 @@ export default function DriverDashboard() {
             <View style={styles.statusContent}>
               <View style={styles.statusInfo}>
                 <View style={styles.statusHeader}>
-                  <Text style={styles.statusText}>
-                    {isOnline ? 'You\'re Online' : 'You\'re Offline'}
-                  </Text>
-                  {isOnline && <CheckCircle size={20} color={Colors.background} />}
+                  <View style={styles.statusTitleContainer}>
+                    <Activity size={20} color={Colors.background} />
+                    <Text style={styles.statusText}>
+                      {isOnline ? 'You\'re Online' : 'You\'re Offline'}
+                    </Text>
+                  </View>
+                  {isOnline && <Zap size={20} color={Colors.background} />}
                 </View>
                 <Text style={styles.statusSubtext}>
                   {isOnline ? 'Ready to accept trips' : 'Tap to go online'}
@@ -298,7 +306,7 @@ export default function DriverDashboard() {
           </LinearGradient>
         </TouchableOpacity>
 
-        {/* Create Trip Button */}
+        {/* Enhanced Create Trip Button */}
         <TouchableOpacity 
           style={styles.createTripButton} 
           onPress={() => setShowCreateTripModal(true)}
@@ -307,122 +315,171 @@ export default function DriverDashboard() {
             colors={[Colors.primary, Colors.secondary]}
             style={styles.createTripGradient}
           >
-            <Plus size={24} color={Colors.background} />
+            <View style={styles.createTripIconContainer}>
+              <Plus size={24} color={Colors.background} />
+            </View>
             <Text style={styles.createTripText}>Create New Trip</Text>
+            <Target size={20} color={Colors.background} />
           </LinearGradient>
         </TouchableOpacity>
 
-        {/* Stats Cards */}
+        {/* Enhanced Stats Cards */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
-            <View style={styles.statIcon}>
-              <DollarSign size={24} color={Colors.success} />
-            </View>
-            <View style={styles.statContent}>
-              <Text style={styles.statValue}>R{todayEarnings}</Text>
-              <Text style={styles.statLabel}>Today's Earnings</Text>
-              <View style={styles.statTrend}>
-                <TrendingUp size={14} color={Colors.success} />
-                <Text style={styles.statTrendText}>+12%</Text>
+            <LinearGradient
+              colors={[Colors.success + '20', Colors.success + '10']}
+              style={styles.statCardGradient}
+            >
+              <View style={[styles.statIcon, { backgroundColor: Colors.success + '30' }]}>
+                <DollarSign size={24} color={Colors.success} />
               </View>
-            </View>
+              <View style={styles.statContent}>
+                <Text style={styles.statValue}>R{todayEarnings}</Text>
+                <Text style={styles.statLabel}>Today's Earnings</Text>
+                <View style={styles.statTrend}>
+                  <TrendingUp size={14} color={Colors.success} />
+                  <Text style={styles.statTrendText}>+12%</Text>
+                </View>
+              </View>
+            </LinearGradient>
           </View>
 
           <View style={styles.statCard}>
-            <View style={styles.statIcon}>
-              <Car size={24} color={Colors.primary} />
-            </View>
-            <View style={styles.statContent}>
-              <Text style={styles.statValue}>{totalTrips}</Text>
-              <Text style={styles.statLabel}>Total Trips</Text>
-              <View style={styles.statTrend}>
-                <TrendingUp size={14} color={Colors.success} />
-                <Text style={styles.statTrendText}>+5 today</Text>
+            <LinearGradient
+              colors={[Colors.primary + '20', Colors.primary + '10']}
+              style={styles.statCardGradient}
+            >
+              <View style={[styles.statIcon, { backgroundColor: Colors.primary + '30' }]}>
+                <Car size={24} color={Colors.primary} />
               </View>
-            </View>
+              <View style={styles.statContent}>
+                <Text style={styles.statValue}>{totalTrips}</Text>
+                <Text style={styles.statLabel}>Total Trips</Text>
+                <View style={styles.statTrend}>
+                  <TrendingUp size={14} color={Colors.success} />
+                  <Text style={styles.statTrendText}>+5 today</Text>
+                </View>
+              </View>
+            </LinearGradient>
           </View>
         </View>
 
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
-            <View style={styles.statIcon}>
-              <Star size={24} color={Colors.warning} />
-            </View>
-            <View style={styles.statContent}>
-              <Text style={styles.statValue}>{rating}</Text>
-              <Text style={styles.statLabel}>Rating</Text>
-              <View style={styles.statTrend}>
-                <Star size={14} color={Colors.warning} fill={Colors.warning} />
-                <Text style={styles.statTrendText}>127 reviews</Text>
+            <LinearGradient
+              colors={[Colors.warning + '20', Colors.warning + '10']}
+              style={styles.statCardGradient}
+            >
+              <View style={[styles.statIcon, { backgroundColor: Colors.warning + '30' }]}>
+                <Star size={24} color={Colors.warning} />
               </View>
-            </View>
+              <View style={styles.statContent}>
+                <Text style={styles.statValue}>{rating}</Text>
+                <Text style={styles.statLabel}>Rating</Text>
+                <View style={styles.statTrend}>
+                  <Award size={14} color={Colors.warning} />
+                  <Text style={styles.statTrendText}>127 reviews</Text>
+                </View>
+              </View>
+            </LinearGradient>
           </View>
 
           <View style={styles.statCard}>
-            <View style={styles.statIcon}>
-              <Clock size={24} color={Colors.secondary} />
-            </View>
-            <View style={styles.statContent}>
-              <Text style={styles.statValue}>8.5h</Text>
-              <Text style={styles.statLabel}>Online Today</Text>
-              <View style={styles.statTrend}>
-                <Clock size={14} color={Colors.secondary} />
-                <Text style={styles.statTrendText}>Active now</Text>
+            <LinearGradient
+              colors={[Colors.secondary + '20', Colors.secondary + '10']}
+              style={styles.statCardGradient}
+            >
+              <View style={[styles.statIcon, { backgroundColor: Colors.secondary + '30' }]}>
+                <Clock size={24} color={Colors.secondary} />
               </View>
-            </View>
+              <View style={styles.statContent}>
+                <Text style={styles.statValue}>8.5h</Text>
+                <Text style={styles.statLabel}>Online Today</Text>
+                <View style={styles.statTrend}>
+                  <Activity size={14} color={Colors.secondary} />
+                  <Text style={styles.statTrendText}>Active now</Text>
+                </View>
+              </View>
+            </LinearGradient>
           </View>
         </View>
 
-        {/* Quick Actions */}
+        {/* Enhanced Quick Actions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.sectionTitleContainer}>
+            <Zap size={20} color={Colors.primary} />
+            <Text style={styles.sectionTitle}>Quick Actions</Text>
+          </View>
           
           <View style={styles.actionsGrid}>
             <TouchableOpacity 
               style={styles.actionCard}
               onPress={() => Alert.alert('Navigation', 'Navigation feature coming soon')}
             >
-              <View style={styles.actionIcon}>
-                <Navigation size={24} color={Colors.primary} />
-              </View>
-              <Text style={styles.actionText}>Navigation</Text>
+              <LinearGradient
+                colors={[Colors.primary + '20', Colors.primary + '10']}
+                style={styles.actionCardGradient}
+              >
+                <View style={[styles.actionIcon, { backgroundColor: Colors.primary + '30' }]}>
+                  <Navigation size={24} color={Colors.primary} />
+                </View>
+                <Text style={styles.actionText}>Navigation</Text>
+              </LinearGradient>
             </TouchableOpacity>
 
             <TouchableOpacity 
               style={styles.actionCard}
               onPress={() => Alert.alert('Set Location', 'Location setting feature coming soon')}
             >
-              <View style={styles.actionIcon}>
-                <MapPin size={24} color={Colors.secondary} />
-              </View>
-              <Text style={styles.actionText}>Set Location</Text>
+              <LinearGradient
+                colors={[Colors.secondary + '20', Colors.secondary + '10']}
+                style={styles.actionCardGradient}
+              >
+                <View style={[styles.actionIcon, { backgroundColor: Colors.secondary + '30' }]}>
+                  <MapPin size={24} color={Colors.secondary} />
+                </View>
+                <Text style={styles.actionText}>Set Location</Text>
+              </LinearGradient>
             </TouchableOpacity>
 
             <TouchableOpacity 
               style={styles.actionCard}
               onPress={() => Alert.alert('Vehicle Info', 'Vehicle information feature coming soon')}
             >
-              <View style={styles.actionIcon}>
-                <Car size={24} color={Colors.success} />
-              </View>
-              <Text style={styles.actionText}>Vehicle Info</Text>
+              <LinearGradient
+                colors={[Colors.success + '20', Colors.success + '10']}
+                style={styles.actionCardGradient}
+              >
+                <View style={[styles.actionIcon, { backgroundColor: Colors.success + '30' }]}>
+                  <Car size={24} color={Colors.success} />
+                </View>
+                <Text style={styles.actionText}>Vehicle Info</Text>
+              </LinearGradient>
             </TouchableOpacity>
 
             <TouchableOpacity 
               style={styles.actionCard}
               onPress={() => Alert.alert('Preferences', 'Preferences feature coming soon')}
             >
-              <View style={styles.actionIcon}>
-                <Settings size={24} color={Colors.warning} />
-              </View>
-              <Text style={styles.actionText}>Preferences</Text>
+              <LinearGradient
+                colors={[Colors.warning + '20', Colors.warning + '10']}
+                style={styles.actionCardGradient}
+              >
+                <View style={[styles.actionIcon, { backgroundColor: Colors.warning + '30' }]}>
+                  <Settings size={24} color={Colors.warning} />
+                </View>
+                <Text style={styles.actionText}>Preferences</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Recent Activity */}
+        {/* Enhanced Recent Activity */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recent Trips</Text>
+          <View style={styles.sectionTitleContainer}>
+            <Clock size={20} color={Colors.primary} />
+            <Text style={styles.sectionTitle}>Recent Trips</Text>
+          </View>
           
           {recentTrips.map((trip) => (
             <TouchableOpacity 
@@ -430,26 +487,34 @@ export default function DriverDashboard() {
               style={styles.tripCard}
               onPress={() => Alert.alert('Trip Details', `Viewing details for trip ${trip.id}`)}
             >
-              <View style={styles.tripHeader}>
-                <View style={styles.tripInfo}>
-                  <Text style={styles.tripPassenger}>{trip.passenger}</Text>
-                  <Text style={styles.tripRoute}>{trip.route}</Text>
-                  <Text style={styles.tripTime}>{trip.time}</Text>
-                </View>
-                <View style={styles.tripFare}>
-                  <Text style={styles.fareAmount}>R{trip.fare}</Text>
-                  <View style={styles.statusBadge}>
-                    <CheckCircle size={12} color={Colors.success} />
-                    <Text style={styles.statusBadgeText}>{trip.status}</Text>
+              <LinearGradient
+                colors={['rgba(37, 99, 235, 0.05)', 'rgba(59, 130, 246, 0.02)']}
+                style={styles.tripCardGradient}
+              >
+                <View style={styles.tripHeader}>
+                  <View style={styles.tripInfo}>
+                    <View style={styles.passengerContainer}>
+                      <Users size={16} color={Colors.primary} />
+                      <Text style={styles.tripPassenger}>{trip.passenger}</Text>
+                    </View>
+                    <Text style={styles.tripRoute}>{trip.route}</Text>
+                    <Text style={styles.tripTime}>{trip.time}</Text>
+                  </View>
+                  <View style={styles.tripFare}>
+                    <Text style={styles.fareAmount}>R{trip.fare}</Text>
+                    <View style={styles.statusBadge}>
+                      <CheckCircle size={12} color={Colors.success} />
+                      <Text style={styles.statusBadgeText}>{trip.status}</Text>
+                    </View>
                   </View>
                 </View>
-              </View>
+              </LinearGradient>
             </TouchableOpacity>
           ))}
         </View>
       </ScrollView>
 
-      {/* Create Trip Modal */}
+      {/* Enhanced Create Trip Modal */}
       <Modal
         visible={showCreateTripModal}
         animationType="slide"
@@ -459,7 +524,10 @@ export default function DriverDashboard() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Create New Trip</Text>
+              <View style={styles.modalTitleContainer}>
+                <Plus size={24} color={Colors.primary} />
+                <Text style={styles.modalTitle}>Create New Trip</Text>
+              </View>
               <TouchableOpacity 
                 onPress={() => setShowCreateTripModal(false)}
                 style={styles.closeButton}
@@ -510,7 +578,7 @@ export default function DriverDashboard() {
                     <Calendar size={20} color={Colors.textSecondary} style={styles.inputIcon} />
                     <TextInput
                       style={styles.textInput}
-                      placeholder="YYYY-MM-DD (e.g., 2024-12-25)"
+                      placeholder="YYYY-MM-DD"
                       placeholderTextColor={Colors.textSecondary}
                       value={tripForm.date}
                       onChangeText={(value) => setTripForm({...tripForm, date: value})}
@@ -525,7 +593,7 @@ export default function DriverDashboard() {
                       setTripForm({...tripForm, date: today});
                     }}
                   >
-                    <Text style={styles.helperButtonText}>Set to today</Text>
+                    <Text style={styles.helperButtonText}>Today</Text>
                   </TouchableOpacity>
                 </View>
                 <View style={{ width: 24 }} />
@@ -535,7 +603,7 @@ export default function DriverDashboard() {
                     <Clock size={20} color={Colors.textSecondary} style={styles.inputIcon} />
                     <TextInput
                       style={styles.textInput}
-                      placeholder="HH:MM (e.g., 14:30)"
+                      placeholder="HH:MM"
                       placeholderTextColor={Colors.textSecondary}
                       value={tripForm.time}
                       onChangeText={(value) => setTripForm({...tripForm, time: value})}
@@ -550,7 +618,7 @@ export default function DriverDashboard() {
                       setTripForm({...tripForm, time: now});
                     }}
                   >
-                    <Text style={styles.helperButtonText}>Set to now</Text>
+                    <Text style={styles.helperButtonText}>Now</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -566,12 +634,9 @@ export default function DriverDashboard() {
                       placeholderTextColor={Colors.textSecondary}
                       value={tripForm.price}
                       onChangeText={(value) => {
-                        // Only allow numbers and decimal point
                         const cleaned = value.replace(/[^0-9.]/g, '');
-                        // Ensure only one decimal point
                         const parts = cleaned.split('.');
                         if (parts.length > 2) return;
-                        // Limit to 2 decimal places
                         if (parts[1] && parts[1].length > 2) return;
                         setTripForm({...tripForm, price: cleaned});
                       }}
@@ -579,41 +644,19 @@ export default function DriverDashboard() {
                       returnKeyType="done"
                     />
                   </View>
-                  <View style={styles.helperButtonsRow}>
-                    <TouchableOpacity 
-                      style={styles.helperButton}
-                      onPress={() => setTripForm({...tripForm, price: '50'})}
-                    >
-                      <Text style={styles.helperButtonText}>R50</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={styles.helperButton}
-                      onPress={() => setTripForm({...tripForm, price: '100'})}
-                    >
-                      <Text style={styles.helperButtonText}>R100</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={styles.helperButton}
-                      onPress={() => setTripForm({...tripForm, price: '150'})}
-                    >
-                      <Text style={styles.helperButtonText}>R150</Text>
-                    </TouchableOpacity>
-                  </View>
                 </View>
 
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Seats *</Text>
                   <View style={styles.inputContainer}>
-                    <Car size={20} color={Colors.textSecondary} style={styles.inputIcon} />
+                    <Users size={20} color={Colors.textSecondary} style={styles.inputIcon} />
                     <TextInput
                       style={styles.textInput}
                       placeholder="4"
                       placeholderTextColor={Colors.textSecondary}
                       value={tripForm.seats}
                       onChangeText={(value) => {
-                        // Only allow numbers
                         const cleaned = value.replace(/[^0-9]/g, '');
-                        // Limit to 1-10 seats
                         const num = parseInt(cleaned);
                         if (num > 10) return;
                         setTripForm({...tripForm, seats: cleaned});
@@ -621,32 +664,6 @@ export default function DriverDashboard() {
                       keyboardType="numeric"
                       returnKeyType="done"
                     />
-                  </View>
-                  <View style={styles.helperButtonsRow}>
-                    <TouchableOpacity 
-                      style={styles.helperButton}
-                      onPress={() => setTripForm({...tripForm, seats: '1'})}
-                    >
-                      <Text style={styles.helperButtonText}>1</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={styles.helperButton}
-                      onPress={() => setTripForm({...tripForm, seats: '2'})}
-                    >
-                      <Text style={styles.helperButtonText}>2</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={styles.helperButton}
-                      onPress={() => setTripForm({...tripForm, seats: '4'})}
-                    >
-                      <Text style={styles.helperButtonText}>4</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={styles.helperButton}
-                      onPress={() => setTripForm({...tripForm, seats: '6'})}
-                    >
-                      <Text style={styles.helperButtonText}>6</Text>
-                    </TouchableOpacity>
                   </View>
                 </View>
               </View>
@@ -666,19 +683,6 @@ export default function DriverDashboard() {
                   />
                 </View>
               </View>
-
-              {/* Form validation summary */}
-              {(!tripForm.from || !tripForm.to || !tripForm.date || !tripForm.time || !tripForm.price || !tripForm.seats) && (
-                <View style={styles.validationContainer}>
-                  <Text style={styles.validationTitle}>Please fill in all required fields:</Text>
-                  {!tripForm.from && <Text style={styles.validationText}>• Pickup location</Text>}
-                  {!tripForm.to && <Text style={styles.validationText}>• Destination</Text>}
-                  {!tripForm.date && <Text style={styles.validationText}>• Date</Text>}
-                  {!tripForm.time && <Text style={styles.validationText}>• Time</Text>}
-                  {!tripForm.price && <Text style={styles.validationText}>• Price</Text>}
-                  {!tripForm.seats && <Text style={styles.validationText}>• Number of seats</Text>}
-                </View>
-              )}
             </ScrollView>
 
             <View style={styles.modalFooter}>
@@ -703,6 +707,7 @@ export default function DriverDashboard() {
                   }
                   style={styles.createButtonGradient}
                 >
+                  <Plus size={20} color={Colors.background} />
                   <Text style={styles.createButtonText}>Create Trip</Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -729,16 +734,26 @@ const styles = StyleSheet.create({
   headerLeft: {
     flex: 1,
   },
+  greetingContainer: {
+    gap: 4,
+  },
   greeting: {
     fontSize: FontSizes.lg,
     fontFamily: Fonts.body.regular,
     color: Colors.textSecondary,
-    marginBottom: 4,
+  },
+  driverNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   driverName: {
     fontSize: FontSizes['2xl'],
     fontFamily: Fonts.heading.bold,
     color: Colors.text,
+  },
+  verifiedBadge: {
+    padding: 2,
   },
   headerActions: {
     flexDirection: 'row',
@@ -751,6 +766,18 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.error,
   },
   statusCard: {
     marginHorizontal: 20,
@@ -777,8 +804,13 @@ const styles = StyleSheet.create({
   statusHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
     marginBottom: 4,
+  },
+  statusTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   statusText: {
     fontSize: FontSizes.xl,
@@ -820,10 +852,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 12,
   },
+  createTripIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   createTripText: {
     fontSize: FontSizes.lg,
     fontFamily: Fonts.heading.bold,
     color: Colors.background,
+    flex: 1,
+    textAlign: 'center',
   },
   statsContainer: {
     flexDirection: 'row',
@@ -833,20 +875,24 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: Colors.surface,
     borderRadius: 16,
-    padding: 16,
+    overflow: 'hidden',
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
   },
+  statCardGradient: {
+    padding: 16,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
   statIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: Colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
@@ -880,11 +926,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 24,
   },
+  sectionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
   sectionTitle: {
     fontSize: FontSizes.xl,
     fontFamily: Fonts.heading.bold,
     color: Colors.text,
-    marginBottom: 16,
   },
   actionsGrid: {
     flexDirection: 'row',
@@ -893,21 +944,25 @@ const styles = StyleSheet.create({
   },
   actionCard: {
     width: (width - 52) / 2,
-    backgroundColor: Colors.surface,
     borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
+    overflow: 'hidden',
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
   },
+  actionCardGradient: {
+    padding: 20,
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
   actionIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: Colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
@@ -919,15 +974,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   tripCard: {
-    backgroundColor: Colors.surface,
     borderRadius: 16,
-    padding: 16,
+    overflow: 'hidden',
     marginBottom: 12,
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
+  },
+  tripCardGradient: {
+    padding: 16,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   tripHeader: {
     flexDirection: 'row',
@@ -937,11 +997,16 @@ const styles = StyleSheet.create({
   tripInfo: {
     flex: 1,
   },
+  passengerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
   tripPassenger: {
     fontSize: FontSizes.base,
     fontFamily: Fonts.heading.medium,
     color: Colors.text,
-    marginBottom: 4,
   },
   tripRoute: {
     fontSize: FontSizes.sm,
@@ -996,6 +1061,11 @@ const styles = StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+  },
+  modalTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   modalTitle: {
     fontSize: FontSizes.xl,
@@ -1055,6 +1125,18 @@ const styles = StyleSheet.create({
     height: 80,
     textAlignVertical: 'top',
   },
+  helperButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  helperButtonText: {
+    fontSize: FontSizes.xs,
+    fontFamily: Fonts.body.medium,
+    color: Colors.background,
+  },
   modalFooter: {
     flexDirection: 'row',
     gap: 12,
@@ -1068,6 +1150,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: Colors.surface,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   cancelButtonText: {
     fontSize: FontSizes.base,
@@ -1080,8 +1164,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   createButtonGradient: {
-    paddingVertical: 16,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 8,
   },
   createButtonText: {
     fontSize: FontSizes.base,
@@ -1091,56 +1178,4 @@ const styles = StyleSheet.create({
   createButtonDisabled: {
     backgroundColor: Colors.textSecondary,
   },
-  validationContainer: {
-    padding: 16,
-    borderWidth: 1,
-    borderColor: Colors.warning,
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  validationTitle: {
-    fontSize: FontSizes.base,
-    fontFamily: Fonts.body.bold,
-    color: Colors.warning,
-    marginBottom: 8,
-  },
-  validationText: {
-    fontSize: FontSizes.xs,
-    fontFamily: Fonts.body.regular,
-    color: Colors.warning,
-    marginBottom: 4,
-  },
-  helperButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  helperButtonText: {
-    fontSize: FontSizes.xs,
-    fontFamily: Fonts.body.medium,
-    color: Colors.background,
-  },
-  helperButtonsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-  },
-  pickerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  pickerButtonText: {
-    fontSize: FontSizes.base,
-    fontFamily: Fonts.body.medium,
-    color: Colors.text,
-    marginLeft: 8,
-  },
-}); 
+});

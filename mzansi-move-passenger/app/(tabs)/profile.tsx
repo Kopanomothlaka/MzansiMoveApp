@@ -20,7 +20,10 @@ import {
   Award,
   TrendingUp,
   Clock,
-  Heart
+  Heart,
+  Zap,
+  Crown,
+  Gift
 } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Fonts, FontSizes } from '@/constants/Fonts';
@@ -77,26 +80,26 @@ export default function ProfileScreen() {
     {
       section: 'Account',
       items: [
-        { icon: User, title: 'Personal Information', subtitle: 'Update your details' },
-        { icon: CreditCard, title: 'Payment Methods', subtitle: '2 cards added' },
-        { icon: MapPin, title: 'Saved Addresses', subtitle: 'Home, Work +2 more' },
-        { icon: Heart, title: 'Favorite Routes', subtitle: '8 routes saved' },
+        { icon: User, title: 'Personal Information', subtitle: 'Update your details', color: Colors.primary },
+        { icon: CreditCard, title: 'Payment Methods', subtitle: '2 cards added', color: Colors.success },
+        { icon: MapPin, title: 'Saved Addresses', subtitle: 'Home, Work +2 more', color: Colors.info },
+        { icon: Heart, title: 'Favorite Routes', subtitle: '8 routes saved', color: Colors.error },
       ]
     },
     {
       section: 'Preferences',
       items: [
-        { icon: Bell, title: 'Notifications', subtitle: 'Push, Email, SMS', hasSwitch: true },
-        { icon: Shield, title: 'Privacy & Safety', subtitle: 'Control your privacy' },
-        { icon: Settings, title: 'App Settings', subtitle: 'Language, Theme' },
+        { icon: Bell, title: 'Notifications', subtitle: 'Push, Email, SMS', hasSwitch: true, color: Colors.warning },
+        { icon: Shield, title: 'Privacy & Safety', subtitle: 'Control your privacy', color: Colors.success },
+        { icon: Settings, title: 'App Settings', subtitle: 'Language, Theme', color: Colors.textSecondary },
       ]
     },
     {
       section: 'Support',
       items: [
-        { icon: HelpCircle, title: 'Help Center', subtitle: 'FAQs and support' },
-        { icon: Award, title: 'Referral Program', subtitle: 'Earn R50 per referral' },
-        { icon: LogOut, title: 'Sign Out', subtitle: '', isDestructive: true },
+        { icon: HelpCircle, title: 'Help Center', subtitle: 'FAQs and support', color: Colors.info },
+        { icon: Gift, title: 'Referral Program', subtitle: 'Earn R50 per referral', color: Colors.primary },
+        { icon: LogOut, title: 'Sign Out', subtitle: '', isDestructive: true, color: Colors.error },
       ]
     }
   ];
@@ -175,22 +178,29 @@ export default function ProfileScreen() {
 
   const renderStatCard = (title: string, value: string | number, icon: any, color: string) => (
     <View style={styles.statCard}>
-      <View style={[styles.statIcon, { backgroundColor: color }]}>
-        {React.createElement(icon, { size: 20, color: Colors.background })}
-      </View>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statTitle}>{title}</Text>
+      <LinearGradient
+        colors={[color + '20', color + '10']}
+        style={styles.statCardGradient}
+      >
+        <View style={[styles.statIcon, { backgroundColor: color + '30' }]}>
+          {React.createElement(icon, { size: 20, color: color })}
+        </View>
+        <Text style={styles.statValue}>{value}</Text>
+        <Text style={styles.statTitle}>{title}</Text>
+      </LinearGradient>
     </View>
   );
 
   const renderActivityItem = (activity: any) => (
     <View key={activity.id} style={styles.activityItem}>
-      <View style={styles.activityIcon}>
-        {activity.type === 'ride' ? (
-          <Car size={16} color={Colors.primary} />
-        ) : (
-          <Package size={16} color={Colors.primary} />
-        )}
+      <View style={styles.activityIconContainer}>
+        <View style={[styles.activityIcon, { backgroundColor: activity.type === 'ride' ? Colors.primary + '20' : Colors.success + '20' }]}>
+          {activity.type === 'ride' ? (
+            <Car size={16} color={activity.type === 'ride' ? Colors.primary : Colors.success} />
+          ) : (
+            <Package size={16} color={Colors.success} />
+          )}
+        </View>
       </View>
       <View style={styles.activityContent}>
         <Text style={styles.activityTitle}>{activity.title}</Text>
@@ -213,13 +223,10 @@ export default function ProfileScreen() {
       onPress={() => handleMenuItemPress(item)}
     >
       <View style={styles.menuItemLeft}>
-        <View style={[
-          styles.menuItemIcon,
-          item.isDestructive && { backgroundColor: 'rgba(239, 68, 68, 0.1)' }
-        ]}>
+        <View style={[styles.menuItemIcon, { backgroundColor: item.color + '20' }]}>
           <item.icon 
             size={20} 
-            color={item.isDestructive ? Colors.error : Colors.primary} 
+            color={item.isDestructive ? Colors.error : item.color} 
           />
         </View>
         <View style={styles.menuItemContent}>
@@ -253,17 +260,22 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.container}>
       <LinearGradient colors={[Colors.background, Colors.surface]} style={styles.gradient}>
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Profile Header */}
+          {/* Enhanced Profile Header */}
           <View style={styles.profileHeader}>
             <LinearGradient
               colors={[Colors.primary, Colors.secondary]}
               style={styles.profileGradient}
             >
               <View style={styles.profileInfo}>
-                <Image
-                  source={{ uri: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=200' }}
-                  style={styles.profileImage}
-                />
+                <View style={styles.profileImageContainer}>
+                  <Image
+                    source={{ uri: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=200' }}
+                    style={styles.profileImage}
+                  />
+                  <View style={styles.premiumBadge}>
+                    <Crown size={12} color={Colors.warning} />
+                  </View>
+                </View>
                 <View style={styles.profileDetails}>
                   <Text style={styles.profileName}>{loadingUser ? '...' : userName}</Text>
                   <Text style={styles.profileEmail}>{loadingUser ? '...' : userEmail}</Text>
@@ -280,7 +292,7 @@ export default function ProfileScreen() {
             </LinearGradient>
           </View>
 
-          {/* Stats Grid */}
+          {/* Enhanced Stats Grid */}
           <View style={styles.statsContainer}>
             <View style={styles.statsGrid}>
               {renderStatCard('Total Rides', userStats.totalRides, Car, Colors.primary)}
@@ -293,7 +305,10 @@ export default function ProfileScreen() {
           {/* Recent Activity */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Recent Rides</Text>
+              <View style={styles.sectionTitleContainer}>
+                <Clock size={20} color={Colors.primary} />
+                <Text style={styles.sectionTitle}>Recent Rides</Text>
+              </View>
               <TouchableOpacity onPress={handleViewAllRides}>
                 <Text style={styles.sectionLink}>View All</Text>
               </TouchableOpacity>
@@ -306,7 +321,9 @@ export default function ProfileScreen() {
           {/* Menu Sections */}
           {menuItems.map((section, sectionIndex) => (
             <View key={section.section} style={styles.section}>
-              <Text style={styles.sectionTitle}>{section.section}</Text>
+              <View style={styles.sectionTitleContainer}>
+                <Text style={styles.sectionTitle}>{section.section}</Text>
+              </View>
               <View style={styles.menuSection}>
                 {section.items.map((item, itemIndex) => 
                   renderMenuItem(item, itemIndex === section.items.length - 1)
@@ -317,7 +334,10 @@ export default function ProfileScreen() {
 
           {/* App Version */}
           <View style={styles.appVersion}>
-            <Text style={styles.versionText}>MzansiMove v1.0.0</Text>
+            <View style={styles.versionContainer}>
+              <Zap size={16} color={Colors.primary} />
+              <Text style={styles.versionText}>MzansiMove v1.0.0</Text>
+            </View>
             <Text style={styles.versionSubtext}>Member since {userStats.memberSince}</Text>
           </View>
         </ScrollView>
@@ -349,12 +369,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
+  profileImageContainer: {
+    position: 'relative',
+  },
   profileImage: {
     width: 80,
     height: 80,
     borderRadius: 40,
     borderWidth: 3,
     borderColor: Colors.background,
+  },
+  premiumBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: Colors.background,
+    borderRadius: 12,
+    padding: 4,
+    borderWidth: 2,
+    borderColor: Colors.warning,
   },
   profileDetails: {
     flex: 1,
@@ -405,17 +438,20 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: Colors.background,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderRadius: 16,
+    overflow: 'hidden',
     shadowColor: Colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 3,
+  },
+  statCardGradient: {
+    padding: 16,
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   statIcon: {
     width: 40,
@@ -447,6 +483,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
+  sectionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   sectionTitle: {
     fontSize: FontSizes.lg,
     fontFamily: Fonts.heading.bold,
@@ -470,14 +511,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
+  activityIconContainer: {
+    marginRight: 12,
+  },
   activityIcon: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
   },
   activityContent: {
     flex: 1,
@@ -538,7 +580,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -565,11 +606,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 32,
   },
+  versionContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
   versionText: {
     fontSize: FontSizes.sm,
     fontFamily: Fonts.body.medium,
     color: Colors.textSecondary,
-    marginBottom: 4,
   },
   versionSubtext: {
     fontSize: FontSizes.sm,

@@ -13,19 +13,33 @@ export const Colors = {
   textSecondaryDark: '#9CA3AF',
   border: '#E5E7EB',
   borderDark: '#374151',
-  success: '#2563EB',
+  success: '#10B981',
   warning: '#F59E0B',
   error: '#EF4444',
   info: '#3B82F6',
   
   // Status colors for bids
   pending: '#F59E0B',
-  accepted: '#2563EB',
+  accepted: '#10B981',
   rejected: '#EF4444',
   
   // Gradient colors
   gradientStart: '#2563EB',
   gradientEnd: '#3B82F6',
+  
+  // Additional semantic colors
+  purple: '#8B5CF6',
+  pink: '#EC4899',
+  indigo: '#6366F1',
+  teal: '#14B8A6',
+  orange: '#F97316',
+  lime: '#84CC16',
+  cyan: '#06B6D4',
+  emerald: '#059669',
+  rose: '#F43F5E',
+  amber: '#F59E0B',
+  violet: '#7C3AED',
+  sky: '#0EA5E9',
 };
 
 export const lightTheme = {

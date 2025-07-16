@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, Modal, Pressable, Animated, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell, MapPin, Search, Plus, Car, Package, Clock, TrendingUp, TrendingDown, CheckCircle, RefreshCw, DollarSign, Hourglass, XCircle } from 'lucide-react-native';
+import { Bell, MapPin, Search, Plus, Car, Package, Clock, TrendingUp, TrendingDown, CheckCircle, RefreshCw, DollarSign, Hourglass, XCircle, Star, Filter, Navigation, Users, Calendar, Zap } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Fonts, FontSizes } from '@/constants/Fonts';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -161,41 +161,11 @@ export default function HomeScreen() {
     }
   };
 
-  const activeBids = [
-    {
-      id: '1',
-      type: 'ride',
-      route: 'Johannesburg → Pretoria',
-      myBid: 120,
-      currentPrice: 130,
-      timeLeft: '2h 30m',
-      status: 'leading'
-    },
-    {
-      id: '2',
-      type: 'package',
-      route: 'Cape Town → Stellenbosch',
-      myBid: 70,
-      currentPrice: 80,
-      timeLeft: '45m',
-      status: 'outbid'
-    },
-  ];
-
   const handleTripPress = (trip: any) => {
     router.push({
       pathname: `/trip/${trip.id}`,
       params: { trip: JSON.stringify(trip) }
     });
-  };
-
-  const handleBid = () => {
-    // This function can be removed or repurposed if bidding is handled on another screen
-    router.push('/bids');
-  };
-
-  const handleRequest = () => {
-    // This function can be removed as booking will be handled on the details page
   };
 
   // Filter out trips that the user has already booked (not canceled) or bid on
@@ -211,57 +181,92 @@ export default function HomeScreen() {
 
   const renderTripCard = (trip: any) => (
     <TouchableOpacity key={trip.id} style={styles.tripCard} onPress={() => handleTripPress(trip)}>
-      <View style={styles.tripCardHeader}>
-        <View style={styles.tripType}>
-          <Car size={16} color={Colors.primary} />
-          <Text style={styles.tripTypeText}>
-            Ride
-          </Text>
-        </View>
-        <View style={styles.trendingIndicator}>
-          <TrendingUp size={16} color={Colors.success} />
-        </View>
-      </View>
-
-      <View style={styles.tripRoute}>
-        <Text style={styles.tripFrom}>{trip.from_location}</Text>
-        <View style={styles.routeArrow}>
-          <View style={styles.arrowLine} />
-          <Text style={styles.arrowText}>→</Text>
-        </View>
-        <Text style={styles.tripTo}>{trip.to_location}</Text>
-      </View>
-
-      <View style={styles.tripDetails}>
-        <View style={styles.tripTime}>
-          <Clock size={14} color={Colors.textSecondary} />
-          <Text style={styles.tripTimeText}>{trip.trip_date} • {trip.trip_time}</Text>
-        </View>
-        <View style={styles.tripCapacity}>
-          <Text style={styles.tripCapacityText}>
-            {`${trip.available_seats}/${trip.total_seats} seats`}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.tripFooter}>
-        <View style={styles.providerInfo}>
-          <Image
-            source={{ uri: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=200' }}
-            style={styles.providerAvatar}
-          />
-          <View>
-            <Text style={styles.providerName}>{trip.driver_profiles ? `${trip.driver_profiles.first_name} ${trip.driver_profiles.last_name}` : 'Driver'}</Text>
-            <Text style={styles.providerRating}>⭐ {trip.driver_profiles?.rating || 'N/A'}</Text>
+      <LinearGradient
+        colors={['rgba(37, 99, 235, 0.05)', 'rgba(59, 130, 246, 0.02)']}
+        style={styles.tripCardGradient}
+      >
+        <View style={styles.tripCardHeader}>
+          <View style={styles.tripType}>
+            <View style={styles.tripTypeIcon}>
+              <Car size={14} color={Colors.primary} />
+            </View>
+            <Text style={styles.tripTypeText}>Ride</Text>
+          </View>
+          <View style={styles.trendingIndicator}>
+            <TrendingUp size={16} color={Colors.success} />
           </View>
         </View>
-        <View style={styles.priceContainer}>
-          <Text style={styles.currentPrice}>R{trip.price}</Text>
-          <TouchableOpacity style={styles.bidButton}>
-            <Text style={styles.bidButtonText}>Bid</Text>
-          </TouchableOpacity>
+
+        <View style={styles.tripRoute}>
+          <View style={styles.routePoint}>
+            <View style={styles.fromIcon}>
+              <MapPin size={12} color={Colors.success} />
+            </View>
+            <Text style={styles.tripFrom}>{trip.from_location}</Text>
+          </View>
+          <View style={styles.routeArrow}>
+            <View style={styles.arrowLine} />
+            <Navigation size={14} color={Colors.primary} style={styles.arrowIcon} />
+          </View>
+          <View style={styles.routePoint}>
+            <View style={styles.toIcon}>
+              <MapPin size={12} color={Colors.error} />
+            </View>
+            <Text style={styles.tripTo}>{trip.to_location}</Text>
+          </View>
         </View>
-      </View>
+
+        <View style={styles.tripDetails}>
+          <View style={styles.tripDetailItem}>
+            <Calendar size={14} color={Colors.textSecondary} />
+            <Text style={styles.tripTimeText}>{trip.trip_date}</Text>
+          </View>
+          <View style={styles.tripDetailItem}>
+            <Clock size={14} color={Colors.textSecondary} />
+            <Text style={styles.tripTimeText}>{trip.trip_time}</Text>
+          </View>
+          <View style={styles.tripDetailItem}>
+            <Users size={14} color={Colors.textSecondary} />
+            <Text style={styles.tripCapacityText}>
+              {`${trip.available_seats}/${trip.total_seats}`}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.tripFooter}>
+          <View style={styles.providerInfo}>
+            <View style={styles.providerAvatar}>
+              <Image
+                source={{ uri: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=200' }}
+                style={styles.avatarImage}
+              />
+            </View>
+            <View style={styles.providerDetails}>
+              <Text style={styles.providerName}>
+                {trip.driver_profiles ? `${trip.driver_profiles.first_name} ${trip.driver_profiles.last_name}` : 'Driver'}
+              </Text>
+              <View style={styles.ratingContainer}>
+                <Star size={12} color={Colors.warning} fill={Colors.warning} />
+                <Text style={styles.providerRating}>
+                  {trip.driver_profiles?.rating || 'New'}
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View style={styles.priceContainer}>
+            <Text style={styles.currentPrice}>R{trip.price}</Text>
+            <TouchableOpacity style={styles.bidButton}>
+              <LinearGradient
+                colors={[Colors.primary, Colors.secondary]}
+                style={styles.bidButtonGradient}
+              >
+                <DollarSign size={14} color={Colors.background} />
+                <Text style={styles.bidButtonText}>Bid</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </LinearGradient>
     </TouchableOpacity>
   );
 
@@ -269,6 +274,7 @@ export default function HomeScreen() {
   const renderActiveBidCard = (bid: any) => {
     const trip = bid.trips;
     if (!trip) return null;
+    
     // Status icon and color
     let statusIcon = <CheckCircle size={16} color={Colors.success} />;
     let statusColor = Colors.success;
@@ -279,43 +285,60 @@ export default function HomeScreen() {
       statusIcon = <XCircle size={16} color={Colors.error} />;
       statusColor = Colors.error;
     }
+    
     return (
       <TouchableOpacity key={bid.id} style={styles.bidCardModern} onPress={() => router.push('/bids')}>
-        <View style={styles.bidCardHeaderModern}>
-          <View style={styles.bidTypeModern}>
-            <Car size={18} color={Colors.primary} style={{ marginRight: 6 }} />
-            <Text style={styles.tripTypeTextModern}>Ride</Text>
+        <LinearGradient
+          colors={['rgba(37, 99, 235, 0.08)', 'rgba(59, 130, 246, 0.04)']}
+          style={styles.bidCardGradient}
+        >
+          <View style={styles.bidCardHeaderModern}>
+            <View style={styles.bidTypeModern}>
+              <View style={styles.bidTypeIconContainer}>
+                <Car size={16} color={Colors.primary} />
+              </View>
+              <Text style={styles.tripTypeTextModern}>Active Bid</Text>
+            </View>
+            <View style={styles.trendingIndicatorModern}>
+              <Zap size={16} color={Colors.warning} />
+            </View>
           </View>
-          <View style={styles.trendingIndicatorModern}>
-            <TrendingUp size={18} color={Colors.success} />
+          
+          <View style={styles.bidRouteRowModern}>
+            <View style={styles.routeIconContainer}>
+              <MapPin size={12} color={Colors.success} />
+            </View>
+            <Text style={styles.bidRouteFromModern}>{trip.from_location}</Text>
+            <Navigation size={12} color={Colors.primary} style={styles.bidRouteArrowModern} />
+            <Text style={styles.bidRouteToModern}>{trip.to_location}</Text>
+            <View style={styles.routeIconContainer}>
+              <MapPin size={12} color={Colors.error} />
+            </View>
           </View>
-        </View>
-        <View style={styles.bidRouteRowModern}>
-          <Text style={styles.bidRouteFromModern}>{trip.from_location}</Text>
-          <Text style={styles.bidRouteArrowModern}>→</Text>
-          <Text style={styles.bidRouteToModern}>{trip.to_location}</Text>
-        </View>
-        <View style={styles.bidDetailsRowModern}>
-          <View style={styles.bidDetailBoxModern}>
-            <DollarSign size={14} color={Colors.primary} />
-            <Text style={styles.bidLabelModern}>My Bid</Text>
-            <Text style={styles.bidAmountModern}>R{bid.amount}</Text>
+          
+          <View style={styles.bidDetailsRowModern}>
+            <View style={styles.bidDetailBoxModern}>
+              <DollarSign size={14} color={Colors.primary} />
+              <Text style={styles.bidLabelModern}>My Bid</Text>
+              <Text style={styles.bidAmountModern}>R{bid.amount}</Text>
+            </View>
+            <View style={styles.bidDetailBoxModern}>
+              <DollarSign size={14} color={Colors.textSecondary} />
+              <Text style={styles.bidLabelModern}>Listed</Text>
+              <Text style={styles.bidAmountModern}>R{trip.price || '-'}</Text>
+            </View>
+            <View style={styles.bidDetailBoxModern}>
+              <Clock size={14} color={Colors.textSecondary} />
+              <Text style={styles.bidLabelModern}>Status</Text>
+              <View style={styles.statusContainer}>
+                {statusIcon}
+                <Text style={[styles.statusTextSmall, { color: statusColor }]}>
+                  {bid.status}
+                </Text>
+              </View>
+            </View>
           </View>
-          <View style={styles.bidDetailBoxModern}>
-            <DollarSign size={14} color={Colors.textSecondary} />
-            <Text style={styles.bidLabelModern}>Current</Text>
-            <Text style={styles.bidAmountModern}>R{trip.price || '-'}</Text>
-          </View>
-          <View style={styles.bidDetailBoxModern}>
-            <Clock size={14} color={Colors.textSecondary} />
-            <Text style={styles.bidLabelModern}>Time Left</Text>
-            <Text style={styles.bidAmountModern}>--</Text>
-          </View>
-        </View>
-        <View style={styles.bidStatusRowModern}>
-          {statusIcon}
-          <Text style={[styles.bidStatusTextModern, { color: statusColor }]}>{bid.status}</Text>
-        </View>
+        </LinearGradient>
       </TouchableOpacity>
     );
   };
@@ -326,53 +349,145 @@ export default function HomeScreen() {
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
+          contentContainerStyle={{ paddingBottom: 100 }}
         >
-          {/* Header */}
+          {/* Enhanced Header */}
           <View style={styles.header}>
-            <View>
-              <Text style={styles.greeting}>{loadingUser ? '' : currentGreeting}</Text>
-              <Text style={styles.userName}>{loadingUser ? 'Loading...' : userName}</Text>
+            <View style={styles.headerLeft}>
+              <View style={styles.greetingContainer}>
+                <Text style={styles.greeting}>{loadingUser ? '' : currentGreeting}</Text>
+                <View style={styles.userNameContainer}>
+                  <Text style={styles.userName}>{loadingUser ? 'Loading...' : userName}</Text>
+                  <View style={styles.verifiedBadge}>
+                    <CheckCircle size={16} color={Colors.success} />
+                  </View>
+                </View>
+              </View>
             </View>
-            <TouchableOpacity style={styles.notificationButton}>
-              <Bell size={24} color={Colors.text} />
-              <View style={styles.notificationBadge} />
-            </TouchableOpacity>
+            <View style={styles.headerRight}>
+              <TouchableOpacity style={styles.notificationButton}>
+                <Bell size={24} color={Colors.text} />
+                <View style={styles.notificationBadge} />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Search & New Request */}
+          {/* Enhanced Search & Actions */}
           <View style={styles.actionsContainer}>
             <View style={styles.searchContainer}>
-              <Search size={20} color={Colors.textSecondary} style={styles.searchIcon} />
+              <View style={styles.searchIconContainer}>
+                <Search size={20} color={Colors.primary} />
+              </View>
               <TextInput
                 style={styles.searchInput}
-                placeholder="Search for a destination..."
+                placeholder="Where would you like to go?"
                 placeholderTextColor={Colors.textSecondary}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
+              <TouchableOpacity style={styles.filterButton}>
+                <Filter size={20} color={Colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Quick Actions */}
+          <View style={styles.quickActionsContainer}>
+            <Text style={styles.sectionTitle}>Quick Actions</Text>
+            <View style={styles.quickActions}>
+              <TouchableOpacity style={styles.quickActionItem}>
+                <LinearGradient
+                  colors={[Colors.primary, Colors.secondary]}
+                  style={styles.quickActionGradient}
+                >
+                  <Car size={24} color={Colors.background} />
+                </LinearGradient>
+                <Text style={styles.quickActionText}>Book Ride</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.quickActionItem}>
+                <LinearGradient
+                  colors={[Colors.success, '#10B981']}
+                  style={styles.quickActionGradient}
+                >
+                  <Package size={24} color={Colors.background} />
+                </LinearGradient>
+                <Text style={styles.quickActionText}>Send Package</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.quickActionItem}>
+                <LinearGradient
+                  colors={[Colors.warning, '#F59E0B']}
+                  style={styles.quickActionGradient}
+                >
+                  <DollarSign size={24} color={Colors.background} />
+                </LinearGradient>
+                <Text style={styles.quickActionText}>My Bids</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.quickActionItem}>
+                <LinearGradient
+                  colors={[Colors.info, '#3B82F6']}
+                  style={styles.quickActionGradient}
+                >
+                  <Clock size={24} color={Colors.background} />
+                </LinearGradient>
+                <Text style={styles.quickActionText}>History</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
           {/* Active Bids Section - only show if there are active bids */}
           {!loadingBids && userBids.length > 0 && (
-            <>
-              <Text style={styles.sectionTitle}>Active Bids</Text>
+            <View style={styles.section}>
+              <View style={styles.sectionHeaderWithIcon}>
+                <View style={styles.sectionTitleContainer}>
+                  <Zap size={20} color={Colors.warning} />
+                  <Text style={styles.sectionTitle}>Active Bids</Text>
+                </View>
+                <TouchableOpacity onPress={() => router.push('/bids')}>
+                  <Text style={styles.viewAllText}>View All</Text>
+                </TouchableOpacity>
+              </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 12 }}>
                 {userBids.map(renderActiveBidCard)}
               </ScrollView>
-            </>
+            </View>
           )}
 
           {/* Available Trips Section */}
-          <Text style={styles.sectionTitle}>Available Trips</Text>
-          {loadingTrips || loadingBookings ? (
-            <View style={styles.loadingContainer}><Text>Loading...</Text></View>
-          ) : filteredTrips.length === 0 ? (
-            <Text style={styles.emptyText}>No available trips found.</Text>
-          ) : (
-            filteredTrips.map(renderTripCard)
-          )}
+          <View style={styles.section}>
+            <View style={styles.sectionHeaderWithIcon}>
+              <View style={styles.sectionTitleContainer}>
+                <Navigation size={20} color={Colors.primary} />
+                <Text style={styles.sectionTitle}>Available Trips</Text>
+              </View>
+              <TouchableOpacity>
+                <RefreshCw size={18} color={Colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            
+            {loadingTrips || loadingBookings ? (
+              <View style={styles.loadingContainer}>
+                <View style={styles.loadingSpinner}>
+                  <RefreshCw size={24} color={Colors.primary} />
+                </View>
+                <Text style={styles.loadingText}>Finding trips...</Text>
+              </View>
+            ) : filteredTrips.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <View style={styles.emptyIcon}>
+                  <Car size={48} color={Colors.textSecondary} />
+                </View>
+                <Text style={styles.emptyTitle}>No trips available</Text>
+                <Text style={styles.emptyText}>Check back later for new rides</Text>
+              </View>
+            ) : (
+              <View style={styles.tripsContainer}>
+                {filteredTrips.map(renderTripCard)}
+              </View>
+            )}
+          </View>
         </ScrollView>
       </LinearGradient>
     </SafeAreaView>
@@ -384,6 +499,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  gradient: {
+    flex: 1,
+  },
   scrollView: {
     flex: 1,
   },
@@ -391,51 +509,76 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingTop: 20,
-    paddingBottom: 10,
+    paddingBottom: 16,
+  },
+  headerLeft: {
+    flex: 1,
+  },
+  greetingContainer: {
+    gap: 4,
   },
   greeting: {
     fontSize: FontSizes.base,
     fontFamily: Fonts.body.regular,
     color: Colors.textSecondary,
   },
+  userNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   userName: {
     fontSize: FontSizes.xl,
     fontFamily: Fonts.heading.bold,
     color: Colors.text,
   },
+  verifiedBadge: {
+    padding: 2,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   notificationButton: {
     position: 'relative',
-    padding: 8,
+    padding: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   notificationBadge: {
     position: 'absolute',
     top: 8,
     right: 8,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: Colors.error,
-    borderWidth: 2,
-    borderColor: Colors.background,
   },
   actionsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginTop: 10,
-    gap: 12,
+    paddingHorizontal: 24,
+    marginBottom: 24,
   },
   searchContainer: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 12,
+    backgroundColor: Colors.background,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: Colors.text,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  searchIcon: {
-    marginRight: 8,
+  searchIconContainer: {
+    padding: 8,
   },
   searchInput: {
     flex: 1,
@@ -444,127 +587,183 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.base,
     fontFamily: Fonts.body.regular,
   },
-  newRequestButton: {
-    backgroundColor: Colors.primary,
-    height: 48,
-    width: 48,
-    borderRadius: 12,
+  filterButton: {
+    padding: 8,
+  },
+  quickActionsContainer: {
+    paddingHorizontal: 24,
+    marginBottom: 32,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  quickActionItem: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  quickActionGradient: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  quickActionText: {
+    fontSize: FontSizes.sm,
+    fontFamily: Fonts.body.medium,
+    color: Colors.text,
+    textAlign: 'center',
   },
   section: {
-    marginTop: 24,
+    paddingHorizontal: 24,
+    marginBottom: 32,
   },
-  sectionHeader: {
+  sectionHeaderWithIcon: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
     marginBottom: 16,
+  },
+  sectionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   sectionTitle: {
     fontSize: FontSizes.lg,
     fontFamily: Fonts.heading.bold,
     color: Colors.text,
   },
-  viewAll: {
+  viewAllText: {
     fontSize: FontSizes.sm,
     fontFamily: Fonts.body.medium,
     color: Colors.primary,
   },
-  mapButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
-  },
-  mapButtonText: {
-    fontSize: FontSizes.sm,
-    fontFamily: Fonts.body.medium,
-    color: Colors.primary,
-  },
-  tripsList: {
-    paddingHorizontal: 20,
+  tripsContainer: {
     gap: 16,
-    paddingBottom: 24,
   },
   tripCard: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: Colors.text,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  tripCardGradient: {
+    padding: 20,
     backgroundColor: Colors.background,
-    borderRadius: 16,
     borderWidth: 1,
     borderColor: Colors.border,
-    padding: 16,
-    marginBottom: 16,
   },
   tripCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   tripType: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.surface,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     gap: 6,
   },
+  tripTypeIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Colors.primary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   tripTypeText: {
-    fontSize: FontSizes.xs,
+    fontSize: FontSizes.sm,
     fontFamily: Fonts.body.medium,
     color: Colors.text,
   },
   trendingIndicator: {
-    padding: 6,
+    padding: 8,
+    backgroundColor: Colors.success + '20',
+    borderRadius: 12,
   },
   tripRoute: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
+    paddingVertical: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+  },
+  routePoint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  fromIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Colors.success + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  toIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Colors.error + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   tripFrom: {
     fontSize: FontSizes.base,
     fontFamily: Fonts.heading.medium,
     color: Colors.text,
-    flex: 1,
   },
   tripTo: {
     fontSize: FontSizes.base,
     fontFamily: Fonts.heading.medium,
     color: Colors.text,
-    flex: 1,
-    textAlign: 'right',
   },
   routeArrow: {
+    flex: 1,
     alignItems: 'center',
-    marginHorizontal: 8,
+    marginHorizontal: 16,
+    position: 'relative',
   },
   arrowLine: {
     height: 1,
-    width: 20,
+    width: '100%',
     backgroundColor: Colors.border,
   },
-  arrowText: {
+  arrowIcon: {
     position: 'absolute',
-    top: -8,
-    color: Colors.textSecondary,
-    fontSize: 16,
+    backgroundColor: Colors.background,
+    padding: 4,
+    borderRadius: 8,
   },
   tripDetails: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
-    paddingTop: 12,
+    paddingVertical: 12,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },
-  tripTime: {
+  tripDetailItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
@@ -573,11 +772,6 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.sm,
     fontFamily: Fonts.body.regular,
     color: Colors.textSecondary,
-  },
-  tripCapacity: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
   },
   tripCapacityText: {
     fontSize: FontSizes.sm,
@@ -592,44 +786,57 @@ const styles = StyleSheet.create({
   providerInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   providerAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: Colors.primary + '30',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  providerDetails: {
+    gap: 4,
   },
   providerName: {
     fontSize: FontSizes.base,
     fontFamily: Fonts.body.medium,
     color: Colors.text,
   },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   providerRating: {
     fontSize: FontSizes.sm,
     fontFamily: Fonts.body.regular,
     color: Colors.textSecondary,
-    marginTop: 2,
   },
   priceContainer: {
     alignItems: 'flex-end',
-  },
-  minPrice: {
-    fontSize: FontSizes.sm,
-    fontFamily: Fonts.body.regular,
-    color: Colors.textSecondary,
-    textDecorationLine: 'line-through',
+    gap: 8,
   },
   currentPrice: {
     fontSize: FontSizes.lg,
     fontFamily: Fonts.heading.bold,
     color: Colors.text,
-    marginBottom: 4,
   },
   bidButton: {
-    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  bidButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 8,
+    gap: 4,
   },
   bidButtonText: {
     fontSize: FontSizes.sm,
@@ -637,17 +844,21 @@ const styles = StyleSheet.create({
     color: Colors.background,
   },
   bidCardModern: {
-    backgroundColor: Colors.surface,
     borderRadius: 20,
-    padding: 22,
     marginRight: 16,
     marginBottom: 10,
-    minWidth: 280,
+    minWidth: 300,
     maxWidth: 340,
-    shadowColor: '#000',
+    overflow: 'hidden',
+    shadowColor: Colors.text,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
-    elevation: 5,
+    elevation: 4,
+  },
+  bidCardGradient: {
+    padding: 20,
+    backgroundColor: Colors.background,
     borderWidth: 1,
     borderColor: Colors.border,
   },
@@ -655,37 +866,63 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   bidTypeModern: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 8,
+  },
+  bidTypeIconContainer: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.primary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tripTypeTextModern: {
+    fontSize: FontSizes.sm,
+    fontFamily: Fonts.heading.bold,
+    color: Colors.primary,
   },
   trendingIndicatorModern: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 8,
+    backgroundColor: Colors.warning + '20',
+    borderRadius: 12,
   },
   bidRouteRowModern: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
-    gap: 4,
+    marginBottom: 16,
+    gap: 8,
+    backgroundColor: Colors.surface,
+    padding: 12,
+    borderRadius: 12,
+  },
+  routeIconContainer: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: Colors.primary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   bidRouteFromModern: {
     fontSize: FontSizes.base,
     fontFamily: Fonts.heading.bold,
     color: Colors.text,
+    flex: 1,
   },
   bidRouteArrowModern: {
-    fontSize: FontSizes.base,
-    color: Colors.primary,
-    marginHorizontal: 2,
+    marginHorizontal: 4,
   },
   bidRouteToModern: {
     fontSize: FontSizes.base,
     fontFamily: Fonts.heading.bold,
     color: Colors.text,
+    flex: 1,
+    textAlign: 'right',
   },
   bidDetailsRowModern: {
     flexDirection: 'row',
@@ -696,95 +933,67 @@ const styles = StyleSheet.create({
   bidDetailBoxModern: {
     flex: 1,
     backgroundColor: Colors.background,
-    borderRadius: 10,
-    padding: 10,
+    borderRadius: 12,
+    padding: 12,
     alignItems: 'center',
-    marginHorizontal: 2,
-    gap: 2,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   bidLabelModern: {
     fontSize: FontSizes.xs,
     color: Colors.textSecondary,
-    marginTop: 2,
+    fontFamily: Fonts.body.regular,
   },
   bidAmountModern: {
     fontSize: FontSizes.base,
     fontFamily: Fonts.heading.bold,
     color: Colors.text,
   },
-  bidStatusRowModern: {
+  statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 6,
-    gap: 6,
+    gap: 4,
   },
-  bidStatusTextModern: {
-    fontSize: FontSizes.sm,
+  statusTextSmall: {
+    fontSize: FontSizes.xs,
     fontFamily: Fonts.body.bold,
     textTransform: 'capitalize',
   },
-  tripTypeTextModern: {
-    fontSize: FontSizes.sm,
-    fontFamily: Fonts.heading.bold,
-    color: Colors.primary,
-    marginLeft: 2,
-  },
-  availableTripsContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 24,
-  },
   loadingContainer: {
-    height: 200,
-    justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 40,
+    gap: 12,
   },
-  emptyContainer: {
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
+  loadingSpinner: {
+    padding: 16,
     backgroundColor: Colors.surface,
     borderRadius: 16,
-    marginHorizontal: 20,
   },
-  gradient: {
-    flex: 1,
+  loadingText: {
+    fontSize: FontSizes.base,
+    fontFamily: Fonts.body.medium,
+    color: Colors.textSecondary,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    gap: 12,
+  },
+  emptyIcon: {
+    padding: 20,
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
+  },
+  emptyTitle: {
+    fontSize: FontSizes.lg,
+    fontFamily: Fonts.heading.bold,
+    color: Colors.text,
   },
   emptyText: {
     fontSize: FontSizes.base,
     fontFamily: Fonts.body.regular,
     color: Colors.textSecondary,
     textAlign: 'center',
-    marginTop: 20,
-  },
-  routeRowModern: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  routeTextModern: {
-    fontSize: FontSizes.base,
-    fontFamily: Fonts.body.medium,
-    color: Colors.text,
-  },
-  detailsRowModern: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  detailBoxModern: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  detailLabelModern: {
-    fontSize: FontSizes.sm,
-    fontFamily: Fonts.body.regular,
-    color: Colors.textSecondary,
-  },
-  detailValueModern: {
-    fontSize: FontSizes.base,
-    fontFamily: Fonts.body.medium,
-    color: Colors.text,
   },
 });
