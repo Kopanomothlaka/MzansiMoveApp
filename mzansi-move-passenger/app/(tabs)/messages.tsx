@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, MessageCircle, Phone, Video, MoreVertical, Send, DollarSign, Plus, Paperclip } from 'lucide-react-native';
+import { Search, MessageCircle, Phone, Video, MoreVertical, Send, DollarSign, Plus, Paperclip, Star, Clock, MapPin, Zap, Users } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Fonts, FontSizes } from '@/constants/Fonts';
+
+const { width } = Dimensions.get('window');
 
 export default function MessagesScreen() {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
@@ -22,7 +24,9 @@ export default function MessagesScreen() {
       type: 'provider',
       tripRoute: 'Johannesburg → Pretoria',
       currentOffer: 120,
-      status: 'active'
+      status: 'active',
+      rating: 4.8,
+      isOnline: true
     },
     {
       id: '2',
@@ -33,7 +37,9 @@ export default function MessagesScreen() {
       unread: 0,
       type: 'provider',
       tripRoute: 'Cape Town → Stellenbosch',
-      status: 'confirmed'
+      status: 'confirmed',
+      rating: 4.9,
+      isOnline: false
     },
     {
       id: '3',
@@ -44,7 +50,9 @@ export default function MessagesScreen() {
       unread: 1,
       type: 'provider',
       tripRoute: 'Durban → Pietermaritzburg',
-      status: 'pending'
+      status: 'pending',
+      rating: 4.7,
+      isOnline: true
     },
   ];
 
@@ -74,74 +82,6 @@ export default function MessagesScreen() {
     '3': ['I am ready', 'See you soon', 'Thank you!'],
   };
 
-  const renderConversationItem = (conversation: any) => (
-    <TouchableOpacity
-      key={conversation.id}
-      style={[
-        styles.conversationItem,
-        selectedChat === conversation.id && styles.selectedConversation
-      ]}
-      onPress={() => setSelectedChat(conversation.id)}
-    >
-      <View style={styles.avatarContainer}>
-        <Image source={{ uri: conversation.avatar }} style={styles.avatar} />
-        <View style={[styles.statusIndicator, { backgroundColor: getStatusColor(conversation.status) }]} />
-      </View>
-      
-      <View style={styles.conversationContent}>
-        <View style={styles.conversationHeader}>
-          <Text style={styles.conversationName}>{conversation.name}</Text>
-          <View style={styles.conversationMeta}>
-            <Text style={styles.conversationTime}>{conversation.time}</Text>
-            {conversation.unread > 0 && (
-              <View style={styles.unreadBadge}>
-                <Text style={styles.unreadText}>{conversation.unread}</Text>
-              </View>
-            )}
-          </View>
-        </View>
-        
-        <Text style={styles.tripRoute}>{conversation.tripRoute}</Text>
-        
-        <View style={styles.conversationFooter}>
-          <Text style={styles.lastMessage} numberOfLines={1}>
-            {conversation.lastMessage}
-          </Text>
-          {conversation.type === 'negotiation' && (
-            <View style={styles.negotiationBadge}>
-              <DollarSign size={12} color={Colors.warning} />
-              <Text style={styles.negotiationText}>R{conversation.currentOffer}</Text>
-            </View>
-          )}
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderMessage = (message: any, providerAvatar: string, riderAvatar: string) => {
-    const isRider = message.sender === 'rider';
-    const isProvider = message.sender === 'provider';
-    return (
-      <View key={message.id} style={[styles.messageRow, isRider ? styles.riderRow : styles.providerRow]}>
-        {isProvider && <Image source={{ uri: providerAvatar }} style={styles.chatAvatar} />}
-        <View style={[styles.messageBubble, isRider ? styles.riderBubble : styles.providerBubble]}>
-          {message.type === 'text' && (
-            <Text style={[styles.messageText, isRider ? styles.riderText : styles.providerText]}>{message.text}</Text>
-          )}
-          {(message.type === 'offer' || message.type === 'counter-offer') && (
-            <View style={styles.offerContainer}>
-              <Text style={styles.offerLabel}>{message.type === 'offer' ? 'Price Offer' : 'Counter Offer'}</Text>
-              <Text style={styles.offerAmount}>R{message.offerAmount}</Text>
-              <Text style={styles.originalPrice}>was R{message.originalPrice}</Text>
-            </View>
-          )}
-          <Text style={styles.messageTime}>{message.time}</Text>
-        </View>
-        {isRider && <Image source={{ uri: riderAvatar }} style={styles.chatAvatar} />}
-      </View>
-    );
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return Colors.warning;
@@ -151,59 +91,219 @@ export default function MessagesScreen() {
     }
   };
 
+  const renderConversationItem = (conversation: any) => (
+    <TouchableOpacity
+      key={conversation.id}
+      style={[
+        styles.conversationItem,
+        selectedChat === conversation.id && styles.selectedConversation
+      ]}
+      onPress={() => setSelectedChat(conversation.id)}
+    >
+      <LinearGradient
+        colors={selectedChat === conversation.id ? 
+          ['rgba(37,99,235,0.1)', 'rgba(59,130,246,0.05)'] : 
+          ['transparent', 'transparent']
+        }
+        style={styles.conversationGradient}
+      >
+        <View style={styles.avatarContainer}>
+          <Image source={{ uri: conversation.avatar }} style={styles.avatar} />
+          <View style={[
+            styles.statusIndicator, 
+            { backgroundColor: conversation.isOnline ? Colors.success : Colors.textSecondary }
+          ]} />
+          {conversation.unread > 0 && (
+            <View style={styles.unreadBadge}>
+              <Text style={styles.unreadText}>{conversation.unread}</Text>
+            </View>
+          )}
+        </View>
+        
+        <View style={styles.conversationContent}>
+          <View style={styles.conversationHeader}>
+            <View style={styles.nameContainer}>
+              <Text style={styles.conversationName}>{conversation.name}</Text>
+              <View style={styles.ratingContainer}>
+                <Star size={12} color={Colors.warning} fill={Colors.warning} />
+                <Text style={styles.ratingText}>{conversation.rating}</Text>
+              </View>
+            </View>
+            <View style={styles.conversationMeta}>
+              <Text style={styles.conversationTime}>{conversation.time}</Text>
+              <View style={[styles.statusDot, { backgroundColor: getStatusColor(conversation.status) }]} />
+            </View>
+          </View>
+          
+          <View style={styles.tripContainer}>
+            <MapPin size={12} color={Colors.textSecondary} />
+            <Text style={styles.tripRoute}>{conversation.tripRoute}</Text>
+          </View>
+          
+          <View style={styles.conversationFooter}>
+            <Text style={styles.lastMessage} numberOfLines={1}>
+              {conversation.lastMessage}
+            </Text>
+            {conversation.type === 'negotiation' && (
+              <View style={styles.negotiationBadge}>
+                <DollarSign size={12} color={Colors.warning} />
+                <Text style={styles.negotiationText}>R{conversation.currentOffer}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </LinearGradient>
+    </TouchableOpacity>
+  );
+
+  const renderMessage = (message: any, providerAvatar: string, riderAvatar: string) => {
+    const isRider = message.sender === 'rider';
+    const isProvider = message.sender === 'provider';
+    return (
+      <View key={message.id} style={[styles.messageRow, isRider ? styles.riderRow : styles.providerRow]}>
+        {isProvider && (
+          <View style={styles.messageAvatarContainer}>
+            <Image source={{ uri: providerAvatar }} style={styles.chatAvatar} />
+          </View>
+        )}
+        <View style={[styles.messageBubble, isRider ? styles.riderBubble : styles.providerBubble]}>
+          {message.type === 'text' && (
+            <Text style={[styles.messageText, isRider ? styles.riderText : styles.providerText]}>
+              {message.text}
+            </Text>
+          )}
+          {(message.type === 'offer' || message.type === 'counter-offer') && (
+            <View style={styles.offerContainer}>
+              <LinearGradient
+                colors={[Colors.warning + '20', Colors.warning + '10']}
+                style={styles.offerGradient}
+              >
+                <View style={styles.offerHeader}>
+                  <DollarSign size={16} color={Colors.warning} />
+                  <Text style={styles.offerLabel}>
+                    {message.type === 'offer' ? 'Price Offer' : 'Counter Offer'}
+                  </Text>
+                </View>
+                <Text style={styles.offerAmount}>R{message.offerAmount}</Text>
+                <Text style={styles.originalPrice}>was R{message.originalPrice}</Text>
+              </LinearGradient>
+            </View>
+          )}
+          <Text style={styles.messageTime}>{message.time}</Text>
+        </View>
+        {isRider && (
+          <View style={styles.messageAvatarContainer}>
+            <Image source={{ uri: riderAvatar }} style={styles.chatAvatar} />
+          </View>
+        )}
+      </View>
+    );
+  };
+
   const renderChatView = () => {
     const conversation = conversations.find(c => c.id === selectedChat);
     if (!conversation) return null;
     const messages = chatThreads[selectedChat!] || [];
     const quickResponses = quickResponsesMap[selectedChat!] || [];
     const riderAvatar = 'https://randomuser.me/api/portraits/men/32.jpg';
+    
     return (
       <View style={styles.chatContainer}>
-        {/* Trip Details Header */}
-        <View style={styles.chatHeader}>
+        {/* Enhanced Chat Header */}
+        <LinearGradient
+          colors={[Colors.background, Colors.surface]}
+          style={styles.chatHeader}
+        >
           <TouchableOpacity onPress={() => setSelectedChat(null)} style={styles.backButton}>
             <Text style={styles.backButtonText}>←</Text>
           </TouchableOpacity>
           <View style={styles.chatHeaderInfo}>
-            <Image source={{ uri: conversation.avatar }} style={styles.chatAvatar} />
-            <View>
-              <Text style={styles.chatName}>{conversation.name} (Provider)</Text>
-              <Text style={styles.chatRoute}>{conversation.tripRoute}</Text>
+            <View style={styles.chatAvatarContainer}>
+              <Image source={{ uri: conversation.avatar }} style={styles.chatHeaderAvatar} />
+              <View style={[
+                styles.onlineIndicator,
+                { backgroundColor: conversation.isOnline ? Colors.success : Colors.textSecondary }
+              ]} />
+            </View>
+            <View style={styles.chatHeaderDetails}>
+              <View style={styles.chatHeaderName}>
+                <Text style={styles.chatName}>{conversation.name}</Text>
+                <View style={styles.providerBadge}>
+                  <Users size={10} color={Colors.primary} />
+                  <Text style={styles.providerText}>Driver</Text>
+                </View>
+              </View>
+              <View style={styles.chatHeaderMeta}>
+                <MapPin size={12} color={Colors.textSecondary} />
+                <Text style={styles.chatRoute}>{conversation.tripRoute}</Text>
+              </View>
             </View>
           </View>
           <View style={styles.chatActions}>
             <TouchableOpacity style={styles.chatActionButton}>
-              <Phone size={20} color={Colors.primary} />
+              <Phone size={18} color={Colors.primary} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.chatActionButton}>
-              <MessageCircle size={20} color={Colors.primary} />
+              <Video size={18} color={Colors.primary} />
             </TouchableOpacity>
           </View>
-        </View>
+        </LinearGradient>
+
         {/* Messages */}
         <ScrollView style={styles.messagesContainer} showsVerticalScrollIndicator={false}>
-          {messages.map(m => renderMessage(m, conversation.avatar, riderAvatar))}
+          <View style={styles.messagesContent}>
+            {messages.map(m => renderMessage(m, conversation.avatar, riderAvatar))}
+          </View>
         </ScrollView>
+
         {/* Quick Responses */}
         <View style={styles.quickResponsesContainer}>
-          {quickResponses.map((resp, idx) => (
-            <TouchableOpacity key={idx} style={styles.quickResponseButton} onPress={() => setMessageText(resp)}>
-              <Text style={styles.quickResponseText}>{resp}</Text>
-            </TouchableOpacity>
-          ))}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.quickResponsesContent}>
+              {quickResponses.map((resp, idx) => (
+                <TouchableOpacity 
+                  key={idx} 
+                  style={styles.quickResponseButton} 
+                  onPress={() => setMessageText(resp)}
+                >
+                  <LinearGradient
+                    colors={[Colors.surface, Colors.background]}
+                    style={styles.quickResponseGradient}
+                  >
+                    <Text style={styles.quickResponseText}>{resp}</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
         </View>
-        {/* Message Input */}
+
+        {/* Enhanced Message Input */}
         <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            value={messageText}
-            onChangeText={setMessageText}
-            placeholder="Type your message..."
-            placeholderTextColor={Colors.textSecondary}
-          />
-          <TouchableOpacity style={styles.sendButton}>
-            <Send size={20} color={Colors.background} />
-          </TouchableOpacity>
+          <LinearGradient
+            colors={[Colors.background, Colors.surface]}
+            style={styles.inputGradient}
+          >
+            <TouchableOpacity style={styles.attachButton}>
+              <Paperclip size={20} color={Colors.textSecondary} />
+            </TouchableOpacity>
+            <TextInput
+              style={styles.input}
+              value={messageText}
+              onChangeText={setMessageText}
+              placeholder="Type your message..."
+              placeholderTextColor={Colors.textSecondary}
+              multiline
+            />
+            <TouchableOpacity style={styles.sendButton}>
+              <LinearGradient
+                colors={[Colors.primary, Colors.secondary]}
+                style={styles.sendButtonGradient}
+              >
+                <Send size={18} color={Colors.background} />
+              </LinearGradient>
+            </TouchableOpacity>
+          </LinearGradient>
         </View>
       </View>
     );
@@ -211,16 +311,26 @@ export default function MessagesScreen() {
 
   const renderConversationsList = () => (
     <View style={styles.conversationsContainer}>
-      {/* Search Bar */}
+      {/* Enhanced Search Bar */}
       <View style={styles.searchContainer}>
-        <Search size={20} color={Colors.textSecondary} />
-        <TextInput
-          style={styles.searchInput}
-          value={searchText}
-          onChangeText={setSearchText}
-          placeholder="Search conversations..."
-          placeholderTextColor={Colors.textSecondary}
-        />
+        <LinearGradient
+          colors={[Colors.surface, Colors.background]}
+          style={styles.searchGradient}
+        >
+          <Search size={20} color={Colors.textSecondary} />
+          <TextInput
+            style={styles.searchInput}
+            value={searchText}
+            onChangeText={setSearchText}
+            placeholder="Search conversations..."
+            placeholderTextColor={Colors.textSecondary}
+          />
+          {searchText.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchText('')}>
+              <Text style={styles.clearSearch}>✕</Text>
+            </TouchableOpacity>
+          )}
+        </LinearGradient>
       </View>
 
       {/* Conversations List */}
@@ -239,9 +349,22 @@ export default function MessagesScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient colors={[Colors.background, Colors.surface]} style={styles.gradient}>
-        {/* Header */}
+        {/* Enhanced Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Messages</Text>
+          <View style={styles.headerContent}>
+            <View style={styles.headerIcon}>
+              <LinearGradient
+                colors={[Colors.primary, Colors.secondary]}
+                style={styles.headerIconGradient}
+              >
+                <MessageCircle size={24} color={Colors.background} />
+              </LinearGradient>
+            </View>
+            <View style={styles.headerText}>
+              <Text style={styles.title}>Messages</Text>
+              <Text style={styles.subtitle}>Stay connected with drivers</Text>
+            </View>
+          </View>
           <TouchableOpacity style={styles.newChatButton}>
             <Plus size={20} color={Colors.primary} />
           </TouchableOpacity>
@@ -263,21 +386,45 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 24,
     paddingTop: 20,
     paddingBottom: 16,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  headerIcon: {
+    marginRight: 16,
+  },
+  headerIconGradient: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerText: {
+    flex: 1,
   },
   title: {
     fontSize: FontSizes['2xl'],
     fontFamily: Fonts.heading.bold,
     color: Colors.text,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: FontSizes.sm,
+    fontFamily: Fonts.body.regular,
+    color: Colors.textSecondary,
   },
   newChatButton: {
-    padding: 8,
+    padding: 12,
     backgroundColor: Colors.surface,
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.border,
   },
@@ -285,14 +432,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   searchContainer: {
+    paddingHorizontal: 24,
+    marginBottom: 16,
+  },
+  searchGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
+    borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    marginHorizontal: 24,
-    marginBottom: 16,
     borderWidth: 1,
     borderColor: Colors.border,
   },
@@ -303,67 +451,58 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginLeft: 12,
   },
+  clearSearch: {
+    fontSize: FontSizes.sm,
+    color: Colors.textSecondary,
+    padding: 4,
+  },
   conversationsList: {
     flex: 1,
   },
   conversationItem: {
+    marginHorizontal: 24,
+    marginBottom: 8,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  conversationGradient: {
     flexDirection: 'row',
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   selectedConversation: {
-    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
   },
   avatarContainer: {
     position: 'relative',
     marginRight: 12,
   },
   avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 2,
+    borderColor: Colors.border,
   },
   statusIndicator: {
     position: 'absolute',
     bottom: 2,
     right: 2,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     borderWidth: 2,
     borderColor: Colors.background,
   },
-  conversationContent: {
-    flex: 1,
-  },
-  conversationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  conversationName: {
-    fontSize: FontSizes.base,
-    fontFamily: Fonts.heading.medium,
-    color: Colors.text,
-  },
-  conversationMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  conversationTime: {
-    fontSize: FontSizes.xs,
-    fontFamily: Fonts.body.regular,
-    color: Colors.textSecondary,
-    marginRight: 8,
-  },
   unreadBadge: {
-    backgroundColor: Colors.primary,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: Colors.error,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 4,
@@ -373,11 +512,59 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.body.bold,
     color: Colors.background,
   },
+  conversationContent: {
+    flex: 1,
+  },
+  conversationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 6,
+  },
+  nameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  conversationName: {
+    fontSize: FontSizes.base,
+    fontFamily: Fonts.heading.medium,
+    color: Colors.text,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  ratingText: {
+    fontSize: FontSizes.xs,
+    fontFamily: Fonts.body.medium,
+    color: Colors.textSecondary,
+  },
+  conversationMeta: {
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  conversationTime: {
+    fontSize: FontSizes.xs,
+    fontFamily: Fonts.body.regular,
+    color: Colors.textSecondary,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  tripContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 6,
+  },
   tripRoute: {
     fontSize: FontSizes.sm,
     fontFamily: Fonts.body.regular,
     color: Colors.textSecondary,
-    marginBottom: 4,
   },
   conversationFooter: {
     flexDirection: 'row',
@@ -394,17 +581,18 @@ const styles = StyleSheet.create({
   negotiationBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
+    backgroundColor: Colors.warning + '20',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 2,
   },
   negotiationText: {
     fontSize: FontSizes.xs,
     fontFamily: Fonts.body.bold,
     color: Colors.warning,
-    marginLeft: 2,
   },
+  // Chat View Styles
   chatContainer: {
     flex: 1,
   },
@@ -415,7 +603,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
-    backgroundColor: Colors.background,
   },
   backButton: {
     padding: 8,
@@ -424,22 +611,64 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: FontSizes.xl,
     color: Colors.primary,
+    fontFamily: Fonts.heading.bold,
   },
   chatHeaderInfo: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
   },
-  chatAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  chatAvatarContainer: {
+    position: 'relative',
     marginRight: 12,
+  },
+  chatHeaderAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+  },
+  onlineIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: Colors.background,
+  },
+  chatHeaderDetails: {
+    flex: 1,
+  },
+  chatHeaderName: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 2,
   },
   chatName: {
     fontSize: FontSizes.base,
     fontFamily: Fonts.heading.medium,
     color: Colors.text,
+  },
+  providerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary + '20',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    gap: 2,
+  },
+  providerText: {
+    fontSize: FontSizes.xs,
+    fontFamily: Fonts.body.medium,
+    color: Colors.primary,
+  },
+  chatHeaderMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   chatRoute: {
     fontSize: FontSizes.sm,
@@ -451,37 +680,55 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   chatActionButton: {
-    padding: 8,
+    padding: 10,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   messagesContainer: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 16,
+  },
+  messagesContent: {
+    paddingVertical: 16,
   },
   messageRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     marginBottom: 16,
+    maxWidth: '85%',
   },
   riderRow: {
-    justifyContent: 'flex-end',
+    alignSelf: 'flex-end',
+    flexDirection: 'row-reverse',
   },
   providerRow: {
-    justifyContent: 'flex-start',
+    alignSelf: 'flex-start',
+  },
+  messageAvatarContainer: {
+    marginHorizontal: 8,
+  },
+  chatAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
   },
   messageBubble: {
-    maxWidth: '80%',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 16,
+    borderRadius: 20,
+    maxWidth: width * 0.7,
   },
   riderBubble: {
     backgroundColor: Colors.primary,
-    borderBottomRightRadius: 4,
+    borderBottomRightRadius: 6,
   },
   providerBubble: {
     backgroundColor: Colors.surface,
-    borderBottomLeftRadius: 4,
+    borderBottomLeftRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   messageText: {
     fontSize: FontSizes.base,
@@ -499,34 +746,54 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.body.regular,
     color: Colors.textSecondary,
     marginTop: 4,
+    opacity: 0.7,
   },
   offerContainer: {
-    marginBottom: 12,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  offerGradient: {
+    padding: 12,
+  },
+  offerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
   },
   offerLabel: {
     fontSize: FontSizes.sm,
     fontFamily: Fonts.body.bold,
-    marginBottom: 4,
+    color: Colors.warning,
   },
   offerAmount: {
-    fontSize: FontSizes['2xl'],
+    fontSize: FontSizes.xl,
     fontFamily: Fonts.heading.bold,
+    color: Colors.text,
+    marginBottom: 4,
   },
   originalPrice: {
     fontSize: FontSizes.sm,
     fontFamily: Fonts.body.regular,
+    color: Colors.textSecondary,
     textDecorationLine: 'line-through',
   },
   quickResponsesContainer: {
     paddingHorizontal: 24,
-    paddingVertical: 8,
+    paddingVertical: 12,
+  },
+  quickResponsesContent: {
+    flexDirection: 'row',
+    gap: 8,
   },
   quickResponseButton: {
-    backgroundColor: Colors.surface,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
     borderRadius: 16,
-    marginRight: 8,
+    overflow: 'hidden',
+  },
+  quickResponseGradient: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderWidth: 1,
     borderColor: Colors.border,
   },
@@ -536,31 +803,38 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
     paddingHorizontal: 24,
     paddingVertical: 16,
-    backgroundColor: Colors.background,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },
-  input: {
-    flex: 1,
+  inputGradient: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderWidth: 1,
     borderColor: Colors.border,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+  },
+  attachButton: {
+    padding: 8,
+    marginRight: 8,
+  },
+  input: {
+    flex: 1,
     fontSize: FontSizes.base,
     fontFamily: Fonts.body.regular,
     color: Colors.text,
-    backgroundColor: Colors.surface,
     maxHeight: 100,
+    paddingVertical: 8,
   },
   sendButton: {
-    padding: 12,
     borderRadius: 20,
+    overflow: 'hidden',
     marginLeft: 8,
-    backgroundColor: Colors.primary,
+  },
+  sendButtonGradient: {
+    padding: 10,
   },
 });

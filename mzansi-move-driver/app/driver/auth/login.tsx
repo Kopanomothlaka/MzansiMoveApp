@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react-native';
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Shield, Car, Star, Zap } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { Fonts, FontSizes } from '@/constants/Fonts';
@@ -34,7 +34,6 @@ export default function DriverLoginScreen() {
         Alert.alert('Login Failed', error.message);
       } else {
         console.log('Login successful, user ID:', data.user?.id);
-        // Check if user is a driver
         const { data: profile, error: profileError } = await supabase
           .from('driver_profiles')
           .select('*')
@@ -74,14 +73,34 @@ export default function DriverLoginScreen() {
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <LinearGradient colors={[Colors.background, Colors.surface]} style={styles.gradient}>
+          {/* Decorative Header */}
+          <View style={styles.decorativeHeader}>
+            <View style={styles.headerDecoration}>
+              <Star size={16} color={Colors.primary} style={styles.decorStar1} />
+              <Car size={20} color={Colors.secondary} style={styles.decorCar} />
+              <Zap size={14} color={Colors.warning} style={styles.decorZap} />
+            </View>
+          </View>
+
           {/* Logo and Title */}
           <View style={styles.logoSection}>
             <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>MzansiMove</Text>
-              <Text style={styles.logoSubtext}>Driver Portal</Text>
+              <LinearGradient
+                colors={[Colors.primary, Colors.secondary]}
+                style={styles.logoCircle}
+              >
+                <Shield size={40} color={Colors.background} />
+              </LinearGradient>
+              <View style={styles.logoAccent}>
+                <Car size={24} color={Colors.primary} />
+              </View>
             </View>
-            <Text style={styles.welcomeText}>Welcome Back!</Text>
-            <Text style={styles.subtitleText}>Sign in to your driver account</Text>
+            <Text style={styles.logoText}>MzansiMove</Text>
+            <Text style={styles.logoSubtext}>Driver Portal</Text>
+            <View style={styles.welcomeContainer}>
+              <Text style={styles.welcomeText}>Welcome Back!</Text>
+              <Text style={styles.subtitleText}>Sign in to your driver account</Text>
+            </View>
           </View>
 
           {/* Login Form */}
@@ -154,16 +173,28 @@ export default function DriverLoginScreen() {
           <View style={styles.socialSection}>
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or continue with</Text>
+              <View style={styles.dividerTextContainer}>
+                <Text style={styles.dividerText}>or continue with</Text>
+              </View>
               <View style={styles.dividerLine} />
             </View>
 
             <View style={styles.socialButtons}>
               <TouchableOpacity style={styles.socialButton} onPress={handleGoogleLogin}>
-                <Text style={styles.socialButtonText}>Google</Text>
+                <LinearGradient
+                  colors={['#DB4437', '#C23321']}
+                  style={styles.socialButtonGradient}
+                >
+                  <Text style={styles.socialButtonText}>Google</Text>
+                </LinearGradient>
               </TouchableOpacity>
               <TouchableOpacity style={styles.socialButton} onPress={handleFacebookLogin}>
-                <Text style={styles.socialButtonText}>Facebook</Text>
+                <LinearGradient
+                  colors={['#4267B2', '#365899']}
+                  style={styles.socialButtonGradient}
+                >
+                  <Text style={styles.socialButtonText}>Facebook</Text>
+                </LinearGradient>
               </TouchableOpacity>
             </View>
           </View>
@@ -174,6 +205,31 @@ export default function DriverLoginScreen() {
             <TouchableOpacity onPress={() => router.push('/driver/auth/register')}>
               <Text style={styles.signupLink}>Sign up as a driver</Text>
             </TouchableOpacity>
+          </View>
+
+          {/* Driver Benefits */}
+          <View style={styles.benefitsSection}>
+            <Text style={styles.benefitsTitle}>Why Drive with MzansiMove?</Text>
+            <View style={styles.benefitsList}>
+              <View style={styles.benefitItem}>
+                <View style={styles.benefitIcon}>
+                  <Shield size={16} color={Colors.success} />
+                </View>
+                <Text style={styles.benefitText}>Verified Passengers</Text>
+              </View>
+              <View style={styles.benefitItem}>
+                <View style={styles.benefitIcon}>
+                  <Star size={16} color={Colors.warning} />
+                </View>
+                <Text style={styles.benefitText}>Earn More</Text>
+              </View>
+              <View style={styles.benefitItem}>
+                <View style={styles.benefitIcon}>
+                  <Zap size={16} color={Colors.primary} />
+                </View>
+                <Text style={styles.benefitText}>Flexible Hours</Text>
+              </View>
+            </View>
           </View>
         </LinearGradient>
       </ScrollView>
@@ -189,15 +245,65 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
+  decorativeHeader: {
+    alignItems: 'flex-end',
+    paddingHorizontal: 24,
+    paddingTop: 20,
+  },
+  headerDecoration: {
+    position: 'relative',
+    width: 60,
+    height: 40,
+  },
+  decorStar1: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+  },
+  decorCar: {
+    position: 'absolute',
+    top: 10,
+    right: 20,
+  },
+  decorZap: {
+    position: 'absolute',
+    bottom: 0,
+    right: 10,
+  },
   logoSection: {
     alignItems: 'center',
     paddingHorizontal: 24,
-    marginTop: 40,
+    marginTop: 20,
     marginBottom: 48,
   },
   logoContainer: {
-    alignItems: 'center',
+    position: 'relative',
     marginBottom: 24,
+  },
+  logoCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  logoAccent: {
+    position: 'absolute',
+    bottom: -8,
+    right: -8,
+    backgroundColor: Colors.background,
+    borderRadius: 20,
+    padding: 8,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   logoText: {
     fontSize: FontSizes['2xl'],
@@ -209,6 +315,10 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.base,
     fontFamily: Fonts.body.medium,
     color: Colors.textSecondary,
+    marginBottom: 24,
+  },
+  welcomeContainer: {
+    alignItems: 'center',
   },
   welcomeText: {
     fontSize: FontSizes.xl,
@@ -269,6 +379,11 @@ const styles = StyleSheet.create({
   loginButton: {
     borderRadius: 12,
     overflow: 'hidden',
+    elevation: 4,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   loginButtonDisabled: {
     opacity: 0.7,
@@ -299,11 +414,14 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Colors.border,
   },
+  dividerTextContainer: {
+    backgroundColor: Colors.background,
+    paddingHorizontal: 16,
+  },
   dividerText: {
     fontSize: FontSizes.sm,
     fontFamily: Fonts.body.regular,
     color: Colors.textSecondary,
-    marginHorizontal: 16,
   },
   socialButtons: {
     flexDirection: 'row',
@@ -311,24 +429,29 @@ const styles = StyleSheet.create({
   },
   socialButton: {
     flex: 1,
-    backgroundColor: Colors.surface,
     borderRadius: 12,
+    overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  socialButtonGradient: {
     padding: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
     alignItems: 'center',
   },
   socialButtonText: {
     fontSize: FontSizes.base,
     fontFamily: Fonts.body.medium,
-    color: Colors.text,
+    color: Colors.background,
   },
   signupSection: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingBottom: 32,
+    marginBottom: 32,
   },
   signupText: {
     fontSize: FontSizes.base,
@@ -340,4 +463,39 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.body.medium,
     color: Colors.primary,
   },
-}); 
+  benefitsSection: {
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+  },
+  benefitsTitle: {
+    fontSize: FontSizes.lg,
+    fontFamily: Fonts.heading.bold,
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  benefitsList: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  benefitItem: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  benefitIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  benefitText: {
+    fontSize: FontSizes.sm,
+    fontFamily: Fonts.body.medium,
+    color: Colors.text,
+    textAlign: 'center',
+  },
+});

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList, Alert, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList, Alert, Modal, TextInput, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { 
@@ -17,7 +17,12 @@ import {
   MessageSquare,
   X,
   User,
-  Phone
+  Phone,
+  Navigation,
+  Zap,
+  TrendingUp,
+  Award,
+  Target
 } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Fonts, FontSizes } from '@/constants/Fonts';
@@ -71,7 +76,6 @@ export default function DriverTrips() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // First get the driver profile to get the driver_id
       const { data: driverProfile, error: profileError } = await supabase
         .from('driver_profiles')
         .select('*')
@@ -88,7 +92,6 @@ export default function DriverTrips() {
         return;
       }
 
-      // Now query trips using the driver_id from driver_profiles
       const { data, error } = await supabase
         .from('trips')
         .select('*')
@@ -98,7 +101,6 @@ export default function DriverTrips() {
       if (error) {
         console.error('Error loading trips:', error);
       } else {
-        // Get actual bid counts for each trip
         const tripsWithBids = await Promise.all(
           (data || []).map(async (trip) => {
             const { count: bidsCount } = await supabase
@@ -139,7 +141,6 @@ export default function DriverTrips() {
         return;
       }
 
-      // Get driver profile to verify ownership
       const { data: driverProfile, error: profileError } = await supabase
         .from('driver_profiles')
         .select('*')
@@ -151,7 +152,6 @@ export default function DriverTrips() {
         return;
       }
 
-      // Check if trip is active (can only act on active trips)
       const { data: trip, error: tripError } = await supabase
         .from('trips')
         .select('status')
@@ -173,14 +173,14 @@ export default function DriverTrips() {
         .from('trips')
         .update({ status: action === 'complete' ? 'completed' : 'cancelled' })
         .eq('id', tripId)
-        .eq('driver_id', driverProfile.user_id); // Ensure driver owns the trip
+        .eq('driver_id', driverProfile.user_id);
 
       if (error) {
         console.error('Error updating trip:', error);
         Alert.alert('Error', 'Failed to update trip status');
       } else {
         Alert.alert('Success', `Trip ${action}d successfully`);
-        loadTrips(); // Refresh data
+        loadTrips();
       }
     } catch (error) {
       console.error('Error in handleTripAction:', error);
@@ -200,6 +200,21 @@ export default function DriverTrips() {
         return Colors.error;
       default:
         return Colors.textSecondary;
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return Clock;
+      case 'active':
+        return Zap;
+      case 'completed':
+        return CheckCircle;
+      case 'cancelled':
+        return XCircle;
+      default:
+        return Clock;
     }
   };
 
@@ -251,101 +266,140 @@ export default function DriverTrips() {
 
   const renderBidItem = ({ item }: { item: Bid }) => (
     <View style={styles.bidCard}>
-      <View style={styles.bidHeader}>
-        <Text style={styles.riderName}>{item.rider_name}</Text>
-        <Text style={[styles.bidStatus, { color: getBidStatusColor(item.status) }]}>
-          {getBidStatusText(item.status)}
-        </Text>
-      </View>
-      <Text style={styles.bidAmount}>R {item.bid_amount}</Text>
+      <LinearGradient
+        colors={['rgba(37,99,235,0.05)', 'rgba(59,130,246,0.02)']}
+        style={styles.bidCardGradient}
+      >
+        <View style={styles.bidHeader}>
+          <View style={styles.riderInfo}>
+            <View style={styles.riderAvatar}>
+              <User size={16} color={Colors.primary} />
+            </View>
+            <Text style={styles.riderName}>{item.rider_name}</Text>
+          </View>
+          <View style={[styles.bidStatusBadge, { backgroundColor: getBidStatusColor(item.status) + '20' }]}>
+            <Text style={[styles.bidStatus, { color: getBidStatusColor(item.status) }]}>
+              {getBidStatusText(item.status)}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.bidAmount}>
+          <DollarSign size={16} color={Colors.success} />
+          <Text style={styles.bidAmountText}>R {item.bid_amount}</Text>
+        </View>
+      </LinearGradient>
     </View>
   );
 
-  const renderTripItem = ({ item }: { item: Trip }) => (
-    <TouchableOpacity 
-      style={styles.tripCard}
-      onPress={() => {
-        setSelectedTrip(item);
-        loadTripBids(item.id);
-        setTripDetailsModalVisible(true);
-      }}
-    >
-      <View style={styles.tripHeader}>
-        <View style={styles.tripInfo}>
-          <Text style={styles.tripDate}>{item.trip_date}</Text>
-          <Text style={styles.tripTime}>{item.trip_time}</Text>
-        </View>
-        <View style={styles.tripStatus}>
-          <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
-            {getStatusText(item.status)}
-          </Text>
-          <Text style={styles.tripPrice}>R{item.price}</Text>
-        </View>
-      </View>
-
-      <View style={styles.tripRoute}>
-        <View style={styles.routePoint}>
-          <View style={styles.pickupIcon}>
-            <MapPin size={16} color={Colors.success} />
-          </View>
-          <View style={styles.routeText}>
-            <Text style={styles.routeLabel}>From</Text>
-            <Text style={styles.routeAddress}>{item.from_location}</Text>
-          </View>
-        </View>
-
-        <View style={styles.routeLine} />
-
-        <View style={styles.routePoint}>
-          <View style={styles.destinationIcon}>
-            <MapPin size={16} color={Colors.primary} />
-          </View>
-          <View style={styles.routeText}>
-            <Text style={styles.routeLabel}>To</Text>
-            <Text style={styles.routeAddress}>{item.to_location}</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.tripFooter}>
-        <View style={styles.tripDetails}>
-          <View style={styles.seatsInfo}>
-            <Users size={16} color={Colors.textSecondary} />
-            <Text style={styles.seatsText}>
-              {`${item.available_seats}/${item.total_seats} seats available`}
-            </Text>
-          </View>
-          {item.bids_count && item.bids_count > 0 && (
-            <View style={styles.bidsInfo}>
-              <MessageSquare size={16} color={Colors.warning} />
-              <Text style={styles.bidsText}>{`${item.bids_count} bids`}</Text>
+  const renderTripItem = ({ item }: { item: Trip }) => {
+    const StatusIcon = getStatusIcon(item.status);
+    
+    return (
+      <TouchableOpacity 
+        style={styles.tripCard}
+        onPress={() => {
+          setSelectedTrip(item);
+          loadTripBids(item.id);
+          setTripDetailsModalVisible(true);
+        }}
+      >
+        <LinearGradient
+          colors={['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.7)']}
+          style={styles.tripCardGradient}
+        >
+          <View style={styles.tripHeader}>
+            <View style={styles.tripInfo}>
+              <View style={styles.tripDateContainer}>
+                <Calendar size={16} color={Colors.primary} />
+                <Text style={styles.tripDate}>{item.trip_date}</Text>
+              </View>
+              <Text style={styles.tripTime}>{item.trip_time}</Text>
             </View>
-          )}
-        </View>
-
-        {item.status === 'active' && (
-          <View style={styles.tripActions}>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.completeButton]}
-              onPress={() => handleTripAction(item.id, 'complete')}
-            >
-              <CheckCircle size={16} color={Colors.background} />
-              <Text style={styles.completeButtonText}>Complete</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.cancelButton]}
-              onPress={() => handleTripAction(item.id, 'cancel')}
-            >
-              <XCircle size={16} color={Colors.error} />
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
+            <View style={styles.tripStatus}>
+              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '20' }]}>
+                <StatusIcon size={12} color={getStatusColor(item.status)} />
+                <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
+                  {getStatusText(item.status)}
+                </Text>
+              </View>
+              <Text style={styles.tripPrice}>R{item.price}</Text>
+            </View>
           </View>
-        )}
-      </View>
 
-      <ChevronRight size={20} color={Colors.textSecondary} style={styles.chevron} />
-    </TouchableOpacity>
-  );
+          <View style={styles.tripRoute}>
+            <View style={styles.routePoint}>
+              <View style={styles.pickupIcon}>
+                <MapPin size={16} color={Colors.success} />
+              </View>
+              <View style={styles.routeText}>
+                <Text style={styles.routeLabel}>From</Text>
+                <Text style={styles.routeAddress}>{item.from_location}</Text>
+              </View>
+            </View>
+
+            <View style={styles.routeLine}>
+              <Navigation size={16} color={Colors.primary} />
+            </View>
+
+            <View style={styles.routePoint}>
+              <View style={styles.destinationIcon}>
+                <MapPin size={16} color={Colors.error} />
+              </View>
+              <View style={styles.routeText}>
+                <Text style={styles.routeLabel}>To</Text>
+                <Text style={styles.routeAddress}>{item.to_location}</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.tripFooter}>
+            <View style={styles.tripDetails}>
+              <View style={styles.seatsInfo}>
+                <Users size={16} color={Colors.textSecondary} />
+                <Text style={styles.seatsText}>
+                  {`${item.available_seats}/${item.total_seats} seats`}
+                </Text>
+              </View>
+              {item.bids_count && item.bids_count > 0 && (
+                <View style={styles.bidsInfo}>
+                  <MessageSquare size={16} color={Colors.warning} />
+                  <Text style={styles.bidsText}>{`${item.bids_count} bids`}</Text>
+                </View>
+              )}
+            </View>
+
+            {item.status === 'active' && (
+              <View style={styles.tripActions}>
+                <TouchableOpacity 
+                  style={styles.completeButton}
+                  onPress={() => handleTripAction(item.id, 'complete')}
+                >
+                  <LinearGradient
+                    colors={[Colors.success, Colors.emerald]}
+                    style={styles.actionButtonGradient}
+                  >
+                    <CheckCircle size={14} color={Colors.background} />
+                    <Text style={styles.completeButtonText}>Complete</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.cancelButton}
+                  onPress={() => handleTripAction(item.id, 'cancel')}
+                >
+                  <View style={styles.cancelButtonContent}>
+                    <XCircle size={14} color={Colors.error} />
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+
+          <ChevronRight size={20} color={Colors.textSecondary} style={styles.chevron} />
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  };
 
   const loadTripBids = async (tripId: string) => {
     setLoadingBids(true);
@@ -373,11 +427,25 @@ export default function DriverTrips() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Enhanced Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Your Trips</Text>
-          <Text style={styles.headerSubtitle}>Manage your scheduled rides</Text>
+          <View style={styles.headerContent}>
+            <View style={styles.headerIcon}>
+              <LinearGradient
+                colors={[Colors.primary, Colors.secondary]}
+                style={styles.headerIconGradient}
+              >
+                <Car size={24} color={Colors.background} />
+              </LinearGradient>
+            </View>
+            <View style={styles.headerText}>
+              <Text style={styles.headerTitle}>Your Trips</Text>
+              <Text style={styles.headerSubtitle}>Manage your scheduled rides</Text>
+            </View>
+          </View>
         </View>
 
+        {/* Enhanced Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <LinearGradient
@@ -385,63 +453,94 @@ export default function DriverTrips() {
               style={styles.statGradient}
             >
               <View style={styles.statContent}>
+                <View style={styles.statIconContainer}>
+                  <DollarSign size={24} color={Colors.background} />
+                </View>
                 <Text style={styles.statValue}>R{totalEarnings}</Text>
                 <Text style={styles.statLabel}>Total Earnings</Text>
               </View>
-              <DollarSign size={32} color={Colors.background} />
             </LinearGradient>
           </View>
 
           <View style={styles.statCard}>
             <LinearGradient
-              colors={[Colors.success, Colors.secondary]}
+              colors={[Colors.success, Colors.emerald]}
               style={styles.statGradient}
             >
               <View style={styles.statContent}>
+                <View style={styles.statIconContainer}>
+                  <TrendingUp size={24} color={Colors.background} />
+                </View>
                 <Text style={styles.statValue}>{totalTrips}</Text>
                 <Text style={styles.statLabel}>Total Trips</Text>
               </View>
-              <Car size={32} color={Colors.background} />
             </LinearGradient>
           </View>
         </View>
 
+        {/* Enhanced Filter */}
         <View style={styles.filterContainer}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {[
-              { key: 'all', label: 'All' },
-              { key: 'pending', label: 'Pending' },
-              { key: 'active', label: 'Active' },
-              { key: 'completed', label: 'Completed' },
-              { key: 'cancelled', label: 'Cancelled' }
-            ].map((filter) => (
-              <TouchableOpacity
-                key={filter.key}
-                style={[
-                  styles.filterTab,
-                  selectedFilter === filter.key && styles.filterTabActive
-                ]}
-                onPress={() => setSelectedFilter(filter.key as 'all' | 'pending' | 'active' | 'completed' | 'cancelled')}
-              >
-                <Text style={[
-                  styles.filterTabText,
-                  selectedFilter === filter.key && styles.filterTabTextActive
-                ]}>
-                  {filter.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            <View style={styles.filterContent}>
+              {[
+                { key: 'all', label: 'All', icon: Target },
+                { key: 'pending', label: 'Pending', icon: Clock },
+                { key: 'active', label: 'Active', icon: Zap },
+                { key: 'completed', label: 'Completed', icon: CheckCircle },
+                { key: 'cancelled', label: 'Cancelled', icon: XCircle }
+              ].map((filter) => {
+                const FilterIcon = filter.icon;
+                return (
+                  <TouchableOpacity
+                    key={filter.key}
+                    style={[
+                      styles.filterTab,
+                      selectedFilter === filter.key && styles.filterTabActive
+                    ]}
+                    onPress={() => setSelectedFilter(filter.key as 'all' | 'pending' | 'active' | 'completed' | 'cancelled')}
+                  >
+                    <LinearGradient
+                      colors={selectedFilter === filter.key ? 
+                        [Colors.primary, Colors.secondary] : 
+                        ['transparent', 'transparent']
+                      }
+                      style={styles.filterTabGradient}
+                    >
+                      <FilterIcon 
+                        size={16} 
+                        color={selectedFilter === filter.key ? Colors.background : Colors.textSecondary} 
+                      />
+                      <Text style={[
+                        styles.filterTabText,
+                        selectedFilter === filter.key && styles.filterTabTextActive
+                      ]}>
+                        {filter.label}
+                      </Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </ScrollView>
         </View>
 
+        {/* Trips List */}
         <View style={styles.tripsContainer}>
           {loading ? (
             <View style={styles.loadingContainer}>
-              <Text>Loading trips...</Text>
+              <ActivityIndicator size="large" color={Colors.primary} />
+              <Text style={styles.loadingText}>Loading trips...</Text>
             </View>
           ) : filteredTrips.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <MessageSquare size={48} color={Colors.textSecondary} />
+              <View style={styles.emptyIcon}>
+                <LinearGradient
+                  colors={[Colors.textSecondary + '20', Colors.textSecondary + '10']}
+                  style={styles.emptyIconGradient}
+                >
+                  <MessageSquare size={48} color={Colors.textSecondary} />
+                </LinearGradient>
+              </View>
               <Text style={styles.emptyTitle}>No trips found</Text>
               <Text style={styles.emptySubtitle}>
                 Trips matching this filter will appear here.
@@ -453,11 +552,13 @@ export default function DriverTrips() {
               renderItem={renderTripItem}
               keyExtractor={(item) => item.id}
               showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.tripsList}
             />
           )}
         </View>
       </ScrollView>
 
+      {/* Enhanced Modal */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -466,60 +567,97 @@ export default function DriverTrips() {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            {selectedTrip && (
-              <>
-                <TouchableOpacity 
-                  style={styles.closeModalButton} 
-                  onPress={() => setTripDetailsModalVisible(false)}
-                >
-                  <X size={24} color={Colors.textSecondary} />
-                </TouchableOpacity>
-                <Text style={styles.modalTitle}>Trip Details</Text>
-                <View style={styles.modalSection}>
-                  <View style={styles.modalRow}>
-                    <MapPin size={16} color={Colors.primary} />
-                    <Text style={styles.modalText}>{selectedTrip.from_location} to {selectedTrip.to_location}</Text>
+            <LinearGradient
+              colors={[Colors.background, Colors.surface]}
+              style={styles.modalGradient}
+            >
+              {selectedTrip && (
+                <>
+                  {/* Modal Header */}
+                  <View style={styles.modalHeader}>
+                    <View style={styles.modalTitleContainer}>
+                      <View style={styles.modalIcon}>
+                        <Car size={20} color={Colors.primary} />
+                      </View>
+                      <Text style={styles.modalTitle}>Trip Details</Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={styles.closeModalButton} 
+                      onPress={() => setTripDetailsModalVisible(false)}
+                    >
+                      <X size={24} color={Colors.textSecondary} />
+                    </TouchableOpacity>
                   </View>
-                  <View style={styles.modalRow}>
-                    <Calendar size={16} color={Colors.primary} />
-                    <Text style={styles.modalText}>{selectedTrip.trip_date} at {selectedTrip.trip_time}</Text>
-                  </View>
-                  <View style={styles.modalRow}>
-                    <DollarSign size={16} color={Colors.primary} />
-                    <Text style={styles.modalText}>R {selectedTrip.price}</Text>
-                  </View>
-                  <View style={styles.modalRow}>
-                    <Users size={16} color={Colors.primary} />
-                    <Text style={styles.modalText}>{selectedTrip.available_seats}/{selectedTrip.total_seats} seats available</Text>
-                  </View>
-                  <View style={styles.modalRow}>
-                    <View style={[styles.statusBadge, { backgroundColor: getStatusColor(selectedTrip.status) }]}>
-                      <Text style={styles.statusBadgeText}>{getStatusText(selectedTrip.status)}</Text>
+
+                  {/* Trip Information */}
+                  <View style={styles.modalSection}>
+                    <View style={styles.modalRow}>
+                      <MapPin size={16} color={Colors.primary} />
+                      <Text style={styles.modalText}>
+                        {selectedTrip.from_location} to {selectedTrip.to_location}
+                      </Text>
+                    </View>
+                    <View style={styles.modalRow}>
+                      <Calendar size={16} color={Colors.primary} />
+                      <Text style={styles.modalText}>
+                        {selectedTrip.trip_date} at {selectedTrip.trip_time}
+                      </Text>
+                    </View>
+                    <View style={styles.modalRow}>
+                      <DollarSign size={16} color={Colors.primary} />
+                      <Text style={styles.modalText}>R {selectedTrip.price}</Text>
+                    </View>
+                    <View style={styles.modalRow}>
+                      <Users size={16} color={Colors.primary} />
+                      <Text style={styles.modalText}>
+                        {selectedTrip.available_seats}/{selectedTrip.total_seats} seats available
+                      </Text>
+                    </View>
+                    <View style={styles.modalRow}>
+                      <View style={[
+                        styles.statusBadge, 
+                        { backgroundColor: getStatusColor(selectedTrip.status) + '20' }
+                      ]}>
+                        <Text style={[
+                          styles.statusBadgeText, 
+                          { color: getStatusColor(selectedTrip.status) }
+                        ]}>
+                          {getStatusText(selectedTrip.status)}
+                        </Text>
+                      </View>
                     </View>
                   </View>
-                </View>
 
-                <Text style={styles.modalSubtitle}>Bids for this trip</Text>
-                
-                {loadingBids ? (
-                  <View style={styles.loadingContainer}>
-                    <Text>Loading bids...</Text>
+                  {/* Bids Section */}
+                  <View style={styles.bidsSection}>
+                    <View style={styles.bidsSectionHeader}>
+                      <Award size={16} color={Colors.warning} />
+                      <Text style={styles.modalSubtitle}>Bids for this trip</Text>
+                    </View>
+                    
+                    {loadingBids ? (
+                      <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="small" color={Colors.primary} />
+                        <Text style={styles.loadingText}>Loading bids...</Text>
+                      </View>
+                    ) : tripBids.length > 0 ? (
+                      <FlatList
+                        data={tripBids}
+                        renderItem={renderBidItem}
+                        keyExtractor={(item) => item.id}
+                        style={styles.bidsList}
+                        showsVerticalScrollIndicator={false}
+                      />
+                    ) : (
+                      <View style={styles.emptyBidsContainer}>
+                        <MessageSquare size={32} color={Colors.textSecondary} />
+                        <Text style={styles.emptyText}>No bids for this trip yet.</Text>
+                      </View>
+                    )}
                   </View>
-                ) : tripBids.length > 0 ? (
-                  <FlatList
-                    data={tripBids}
-                    renderItem={renderBidItem}
-                    keyExtractor={(item) => item.id}
-                    style={styles.bidsList}
-                  />
-                ) : (
-                  <View style={styles.emptyContainer}>
-                    <MessageSquare size={32} color={Colors.textSecondary} />
-                    <Text style={styles.emptyText}>No bids for this trip yet.</Text>
-                  </View>
-                )}
-              </>
-            )}
+                </>
+              )}
+            </LinearGradient>
           </View>
         </View>
       </Modal>
@@ -533,16 +671,35 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   header: {
-    padding: 24,
-    marginBottom: 24,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 16,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerIcon: {
+    marginRight: 16,
+  },
+  headerIconGradient: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerText: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: FontSizes.xl,
     fontFamily: Fonts.heading.bold,
     color: Colors.text,
+    marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: FontSizes.base,
+    fontSize: FontSizes.sm,
     fontFamily: Fonts.body.regular,
     color: Colors.textSecondary,
   },
@@ -556,7 +713,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 16,
     overflow: 'hidden',
-    elevation: 2,
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -564,12 +721,12 @@ const styles = StyleSheet.create({
   },
   statGradient: {
     padding: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
   },
   statContent: {
-    flex: 1,
+    alignItems: 'center',
+  },
+  statIconContainer: {
+    marginBottom: 8,
   },
   statValue: {
     fontSize: FontSizes['2xl'],
@@ -587,15 +744,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 24,
   },
+  filterContent: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   filterTab: {
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  filterTabGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: Colors.surface,
-    marginRight: 8,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   filterTabActive: {
-    backgroundColor: Colors.primary,
+    elevation: 2,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   filterTabText: {
     fontSize: FontSizes.sm,
@@ -607,32 +778,45 @@ const styles = StyleSheet.create({
   },
   tripsContainer: {
     paddingHorizontal: 20,
+    flex: 1,
+  },
+  tripsList: {
+    paddingBottom: 20,
   },
   tripCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    elevation: 1,
+    borderRadius: 20,
+    overflow: 'hidden',
+    marginBottom: 16,
+    elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  tripCardGradient: {
+    padding: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   tripHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   tripInfo: {
     flex: 1,
+  },
+  tripDateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
   },
   tripDate: {
     fontSize: FontSizes.base,
     fontFamily: Fonts.heading.medium,
     color: Colors.text,
-    marginBottom: 2,
   },
   tripTime: {
     fontSize: FontSizes.sm,
@@ -641,11 +825,19 @@ const styles = StyleSheet.create({
   },
   tripStatus: {
     alignItems: 'flex-end',
+    gap: 8,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
   },
   statusText: {
     fontSize: FontSizes.sm,
     fontFamily: Fonts.body.medium,
-    marginBottom: 4,
   },
   tripPrice: {
     fontSize: FontSizes.lg,
@@ -653,27 +845,30 @@ const styles = StyleSheet.create({
     color: Colors.success,
   },
   tripRoute: {
-    marginBottom: 12,
+    marginBottom: 16,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
   },
   routePoint: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   pickupIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: Colors.success + '20',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   destinationIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: Colors.primary + '20',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.error + '20',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -693,11 +888,8 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   routeLine: {
-    width: 2,
-    height: 16,
-    backgroundColor: Colors.border,
-    marginLeft: 11,
-    marginBottom: 8,
+    alignItems: 'center',
+    marginVertical: 8,
   },
   tripFooter: {
     flexDirection: 'row',
@@ -706,42 +898,42 @@ const styles = StyleSheet.create({
   },
   tripDetails: {
     flex: 1,
+    gap: 8,
   },
   seatsInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    gap: 6,
   },
   seatsText: {
     fontSize: FontSizes.sm,
     fontFamily: Fonts.body.regular,
     color: Colors.textSecondary,
-    marginLeft: 6,
   },
   bidsInfo: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
   },
   bidsText: {
     fontSize: FontSizes.sm,
     fontFamily: Fonts.body.medium,
     color: Colors.warning,
-    marginLeft: 6,
   },
   tripActions: {
     flexDirection: 'row',
     gap: 8,
   },
-  actionButton: {
+  completeButton: {
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  actionButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 8,
     gap: 4,
-  },
-  completeButton: {
-    backgroundColor: Colors.success,
   },
   completeButtonText: {
     fontSize: FontSizes.xs,
@@ -749,7 +941,15 @@ const styles = StyleSheet.create({
     color: Colors.background,
   },
   cancelButton: {
+    borderRadius: 8,
     backgroundColor: Colors.error + '20',
+  },
+  cancelButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    gap: 4,
   },
   cancelButtonText: {
     fontSize: FontSizes.xs,
@@ -758,12 +958,13 @@ const styles = StyleSheet.create({
   },
   chevron: {
     position: 'absolute',
-    top: 16,
-    right: 16,
+    top: 20,
+    right: 20,
   },
   loadingContainer: {
     padding: 40,
     alignItems: 'center',
+    gap: 12,
   },
   loadingText: {
     fontSize: FontSizes.base,
@@ -773,13 +974,22 @@ const styles = StyleSheet.create({
   emptyContainer: {
     padding: 40,
     alignItems: 'center',
+    gap: 16,
+  },
+  emptyIcon: {
+    marginBottom: 8,
+  },
+  emptyIconGradient: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyTitle: {
     fontSize: FontSizes.lg,
     fontFamily: Fonts.heading.medium,
     color: Colors.text,
-    marginTop: 16,
-    marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: FontSizes.base,
@@ -787,38 +997,62 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
   },
+  // Modal Styles
   modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   modalContent: {
-    backgroundColor: Colors.surface,
-    padding: 20,
-    borderRadius: 16,
-    width: '80%',
+    width: '100%',
+    maxWidth: 400,
     maxHeight: '80%',
+    borderRadius: 20,
+    overflow: 'hidden',
   },
-  closeModalButton: {
-    backgroundColor: Colors.primary,
-    padding: 12,
-    borderRadius: 8,
+  modalGradient: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
-  closeButtonText: {
-    fontSize: FontSizes.sm,
-    fontFamily: Fonts.body.medium,
-    color: Colors.background,
+  modalTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  modalIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.primary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalTitle: {
     fontSize: FontSizes.xl,
     fontFamily: Fonts.heading.bold,
     color: Colors.text,
-    marginBottom: 16,
+  },
+  closeModalButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalSection: {
-    marginBottom: 24,
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
   modalRow: {
     flexDirection: 'row',
@@ -832,27 +1066,86 @@ const styles = StyleSheet.create({
     color: Colors.text,
     flex: 1,
   },
+  statusBadgeText: {
+    fontSize: FontSizes.sm,
+    fontFamily: Fonts.body.medium,
+  },
+  bidsSection: {
+    flex: 1,
+    padding: 20,
+  },
+  bidsSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
   modalSubtitle: {
     fontSize: FontSizes.lg,
     fontFamily: Fonts.heading.bold,
     color: Colors.text,
-    marginBottom: 16,
   },
   bidsList: {
     flex: 1,
   },
-  statusBadge: {
-    fontSize: FontSizes.sm,
-    fontFamily: Fonts.body.medium,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+  bidCard: {
     borderRadius: 12,
-    alignSelf: 'flex-start',
+    overflow: 'hidden',
+    marginBottom: 12,
   },
-  statusBadgeText: {
+  bidCardGradient: {
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  bidHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  riderInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  riderAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.primary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  riderName: {
+    fontSize: FontSizes.base,
+    fontFamily: Fonts.heading.medium,
+    color: Colors.text,
+  },
+  bidStatusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  bidStatus: {
     fontSize: FontSizes.sm,
     fontFamily: Fonts.body.medium,
-    color: Colors.background,
+    textTransform: 'capitalize',
+  },
+  bidAmount: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  bidAmountText: {
+    fontSize: FontSizes.lg,
+    fontFamily: Fonts.heading.bold,
+    color: Colors.success,
+  },
+  emptyBidsContainer: {
+    alignItems: 'center',
+    padding: 20,
+    gap: 12,
   },
   emptyText: {
     fontSize: FontSizes.base,
@@ -860,31 +1153,4 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
   },
-  bidCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  bidHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  riderName: {
-    fontSize: FontSizes.base,
-    fontFamily: Fonts.heading.medium,
-    color: Colors.text,
-  },
-  bidStatus: {
-    fontSize: FontSizes.sm,
-    fontFamily: Fonts.body.medium,
-  },
-  bidAmount: {
-    fontSize: FontSizes.lg,
-    fontFamily: Fonts.heading.bold,
-    color: Colors.primary,
-  },
-}); 
+});
