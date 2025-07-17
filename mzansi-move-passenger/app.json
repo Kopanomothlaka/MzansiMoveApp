@@ -24,6 +24,18 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "54fa313d-efb9-4470-ba89-ebd86c87cf19"
+      }
+    },
+    "owner": "kaypee10096",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/54fa313d-efb9-4470-ba89-ebd86c87cf19"
     }
   }
 }

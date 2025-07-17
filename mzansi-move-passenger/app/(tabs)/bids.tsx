@@ -34,11 +34,17 @@ export default function BidsScreen() {
         .eq('rider_id', user.id)
         .order('created_at', { ascending: false });
       if (error) {
+        console.error('Error fetching bids:', error);
         setBids([]);
       } else {
+        console.log('Fetched bids:', data);
+        if (data && data.length > 0) {
+          console.log('First bid structure:', data[0]);
+        }
         setBids(data || []);
       }
     } catch (e) {
+      console.error('Exception fetching bids:', e);
       setBids([]);
     } finally {
       setLoading(false);
@@ -46,8 +52,11 @@ export default function BidsScreen() {
   };
 
   const handleIncreaseBid = (bid: any) => {
+    console.log('Bid data:', bid);
     setSelectedBid(bid);
-    setNewAmount(bid.amount.toString());
+    // Handle different possible field names for bid amount
+    const bidAmount = bid.bid_amount || bid.amount || bid.bidAmount || 0;
+    setNewAmount(bidAmount.toString());
     setModalVisible(true);
   };
 
@@ -58,9 +67,14 @@ export default function BidsScreen() {
     }
     setActionLoading(true);
     try {
+      // Determine the correct field name to update
+      const updateField = selectedBid.bid_amount !== undefined ? 'bid_amount' : 
+                         selectedBid.amount !== undefined ? 'amount' : 
+                         selectedBid.bidAmount !== undefined ? 'bidAmount' : 'bid_amount';
+      
       const { error } = await supabase
         .from('bids')
-        .update({ amount: Number(newAmount) })
+        .update({ [updateField]: Number(newAmount) })
         .eq('id', selectedBid.id);
       if (error) {
         Alert.alert('Error', error.message);
@@ -137,11 +151,18 @@ export default function BidsScreen() {
 
   const renderBid = (bid: any) => {
     const trip = bid.trips;
-    if (!trip) return null;
     return (
       <View key={bid.id} style={styles.bidCard}>
         <View style={styles.cardHeader}>
-          <Text style={styles.routeText}>{trip.from_location} <ArrowRight size={14} color={Colors.textSecondary} /> {trip.to_location}</Text>
+          <Text style={styles.routeText}>
+            {trip ? (
+              <>
+                {trip.from_location} <ArrowRight size={14} color={Colors.textSecondary} /> {trip.to_location}
+              </>
+            ) : (
+              `Trip #${bid.trip_id?.slice(0, 8)}`
+            )}
+          </Text>
           <View style={[styles.statusBadge, { backgroundColor: getStatusStyle(bid.status).backgroundColor }]}>
             {getStatusIcon(bid.status)}
             <Text style={[styles.statusText, { color: getStatusStyle(bid.status).color }]}>{bid.status}</Text>
@@ -151,11 +172,11 @@ export default function BidsScreen() {
         <View style={styles.detailsRow}>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>My Bid</Text>
-            <Text style={styles.detailValue}>R{bid.amount}</Text>
+            <Text style={styles.detailValue}>R{bid.bid_amount || bid.amount || bid.bidAmount || 0}</Text>
           </View>
           <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Trip Price</Text>
-            <Text style={styles.detailValue}>R{trip.price}</Text>
+            <Text style={styles.detailLabel}>{trip ? 'Trip Price' : 'Message'}</Text>
+            <Text style={styles.detailValue}>{trip ? `R${trip.price}` : (bid.message || 'No message')}</Text>
           </View>
         </View>
 
@@ -184,6 +205,9 @@ export default function BidsScreen() {
         ) : bids.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>You have no bids yet.</Text>
+            <Text style={[styles.emptyText, { marginTop: 10, fontSize: FontSizes.sm }]}>
+              Debug: Check console for bid data
+            </Text>
           </View>
         ) : (
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
