@@ -66,6 +66,7 @@ export default function DriverTrips() {
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [tripBids, setTripBids] = useState<Bid[]>([]);
   const [loadingBids, setLoadingBids] = useState(false);
+  const [tripBooking, setTripBooking] = useState<any>(null);
 
   useEffect(() => {
     loadTrips();
@@ -291,17 +292,20 @@ export default function DriverTrips() {
     </View>
   );
 
+  const handleOpenTripDetails = (item: Trip) => {
+    setSelectedTrip(item);
+    loadTripBids(item.id);
+    loadTripBooking(item.id);
+    setTripDetailsModalVisible(true);
+  };
+
   const renderTripItem = ({ item }: { item: Trip }) => {
     const StatusIcon = getStatusIcon(item.status);
     
     return (
       <TouchableOpacity 
         style={styles.tripCard}
-        onPress={() => {
-          setSelectedTrip(item);
-          loadTripBids(item.id);
-          setTripDetailsModalVisible(true);
-        }}
+        onPress={() => handleOpenTripDetails(item)}
       >
         <LinearGradient
           colors={['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.7)']}
@@ -424,114 +428,135 @@ export default function DriverTrips() {
     }
   };
 
+  const loadTripBooking = async (tripId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('*, profiles:rider_id(*)')
+        .eq('trip_id', tripId)
+        .in('status', ['pending', 'accepted']) // Show both pending and accepted bookings
+        .single();
+      if (!error && data) setTripBooking(data);
+      else setTripBooking(null);
+    } catch {
+      setTripBooking(null);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Enhanced Header */}
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <View style={styles.headerIcon}>
-              <LinearGradient
-                colors={[Colors.primary, Colors.secondary]}
-                style={styles.headerIconGradient}
-              >
-                <Car size={24} color={Colors.background} />
-              </LinearGradient>
-            </View>
-            <View style={styles.headerText}>
-              <Text style={styles.headerTitle}>Your Trips</Text>
-              <Text style={styles.headerSubtitle}>Manage your scheduled rides</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Enhanced Stats */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <LinearGradient
-              colors={[Colors.primary, Colors.secondary]}
-              style={styles.statGradient}
-            >
-              <View style={styles.statContent}>
-                <View style={styles.statIconContainer}>
-                  <DollarSign size={24} color={Colors.background} />
-                </View>
-                <Text style={styles.statValue}>R{totalEarnings}</Text>
-                <Text style={styles.statLabel}>Total Earnings</Text>
-              </View>
-            </LinearGradient>
-          </View>
-
-          <View style={styles.statCard}>
-            <LinearGradient
-              colors={[Colors.success, Colors.emerald]}
-              style={styles.statGradient}
-            >
-              <View style={styles.statContent}>
-                <View style={styles.statIconContainer}>
-                  <TrendingUp size={24} color={Colors.background} />
-                </View>
-                <Text style={styles.statValue}>{totalTrips}</Text>
-                <Text style={styles.statLabel}>Total Trips</Text>
-              </View>
-            </LinearGradient>
-          </View>
-        </View>
-
-        {/* Enhanced Filter */}
-        <View style={styles.filterContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.filterContent}>
-              {[
-                { key: 'all', label: 'All', icon: Target },
-                { key: 'pending', label: 'Pending', icon: Clock },
-                { key: 'active', label: 'Active', icon: Zap },
-                { key: 'completed', label: 'Completed', icon: CheckCircle },
-                { key: 'cancelled', label: 'Cancelled', icon: XCircle }
-              ].map((filter) => {
-                const FilterIcon = filter.icon;
-                return (
-                  <TouchableOpacity
-                    key={filter.key}
-                    style={[
-                      styles.filterTab,
-                      selectedFilter === filter.key && styles.filterTabActive
-                    ]}
-                    onPress={() => setSelectedFilter(filter.key as 'all' | 'pending' | 'active' | 'completed' | 'cancelled')}
+      <FlatList
+        data={filteredTrips}
+        renderItem={renderTripItem}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.tripsList}
+        ListHeaderComponent={
+          <>
+            {/* Enhanced Header */}
+            <View style={styles.header}>
+              <View style={styles.headerContent}>
+                <View style={styles.headerIcon}>
+                  <LinearGradient
+                    colors={[Colors.primary, Colors.secondary]}
+                    style={styles.headerIconGradient}
                   >
-                    <LinearGradient
-                      colors={selectedFilter === filter.key ? 
-                        [Colors.primary, Colors.secondary] : 
-                        ['transparent', 'transparent']
-                      }
-                      style={styles.filterTabGradient}
-                    >
-                      <FilterIcon 
-                        size={16} 
-                        color={selectedFilter === filter.key ? Colors.background : Colors.textSecondary} 
-                      />
-                      <Text style={[
-                        styles.filterTabText,
-                        selectedFilter === filter.key && styles.filterTabTextActive
-                      ]}>
-                        {filter.label}
-                      </Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                );
-              })}
+                    <Car size={24} color={Colors.background} />
+                  </LinearGradient>
+                </View>
+                <View style={styles.headerText}>
+                  <Text style={styles.headerTitle}>Your Trips</Text>
+                  <Text style={styles.headerSubtitle}>Manage your scheduled rides</Text>
+                </View>
+              </View>
             </View>
-          </ScrollView>
-        </View>
 
-        {/* Trips List */}
-        <View style={styles.tripsContainer}>
-          {loading ? (
+            {/* Enhanced Stats */}
+            <View style={styles.statsContainer}>
+              <View style={styles.statCard}>
+                <LinearGradient
+                  colors={[Colors.primary, Colors.secondary]}
+                  style={styles.statGradient}
+                >
+                  <View style={styles.statContent}>
+                    <View style={styles.statIconContainer}>
+                      <DollarSign size={24} color={Colors.background} />
+                    </View>
+                    <Text style={styles.statValue}>R{totalEarnings}</Text>
+                    <Text style={styles.statLabel}>Total Earnings</Text>
+                  </View>
+                </LinearGradient>
+              </View>
+              <View style={styles.statCard}>
+                <LinearGradient
+                  colors={[Colors.success, Colors.emerald]}
+                  style={styles.statGradient}
+                >
+                  <View style={styles.statContent}>
+                    <View style={styles.statIconContainer}>
+                      <TrendingUp size={24} color={Colors.background} />
+                    </View>
+                    <Text style={styles.statValue}>{totalTrips}</Text>
+                    <Text style={styles.statLabel}>Total Trips</Text>
+                  </View>
+                </LinearGradient>
+              </View>
+            </View>
+
+            {/* Enhanced Filter */}
+            <View style={styles.filterContainer}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.filterContent}>
+                  {[
+                    { key: 'all', label: 'All', icon: Target },
+                    { key: 'pending', label: 'Pending', icon: Clock },
+                    { key: 'active', label: 'Active', icon: Zap },
+                    { key: 'completed', label: 'Completed', icon: CheckCircle },
+                    { key: 'cancelled', label: 'Cancelled', icon: XCircle }
+                  ].map((filter) => {
+                    const FilterIcon = filter.icon;
+                    return (
+                      <TouchableOpacity
+                        key={filter.key}
+                        style={[
+                          styles.filterTab,
+                          selectedFilter === filter.key && styles.filterTabActive
+                        ]}
+                        onPress={() => setSelectedFilter(filter.key as 'all' | 'pending' | 'active' | 'completed' | 'cancelled')}
+                      >
+                        <LinearGradient
+                          colors={selectedFilter === filter.key ? 
+                            [Colors.primary, Colors.secondary] : 
+                            ['transparent', 'transparent']
+                          }
+                          style={styles.filterTabGradient}
+                        >
+                          <FilterIcon 
+                            size={16} 
+                            color={selectedFilter === filter.key ? Colors.background : Colors.textSecondary} 
+                          />
+                          <Text style={[
+                            styles.filterTabText,
+                            selectedFilter === filter.key && styles.filterTabTextActive
+                          ]}>
+                            {filter.label}
+                          </Text>
+                        </LinearGradient>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+            </View>
+          </>
+        }
+        ListEmptyComponent={
+          loading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={Colors.primary} />
               <Text style={styles.loadingText}>Loading trips...</Text>
             </View>
-          ) : filteredTrips.length === 0 ? (
+          ) : (
             <View style={styles.emptyContainer}>
               <View style={styles.emptyIcon}>
                 <LinearGradient
@@ -546,17 +571,9 @@ export default function DriverTrips() {
                 Trips matching this filter will appear here.
               </Text>
             </View>
-          ) : (
-            <FlatList
-              data={filteredTrips}
-              renderItem={renderTripItem}
-              keyExtractor={(item) => item.id}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.tripsList}
-            />
-          )}
-        </View>
-      </ScrollView>
+          )
+        }
+      />
 
       {/* Enhanced Modal */}
       <Modal
@@ -572,7 +589,7 @@ export default function DriverTrips() {
               style={styles.modalGradient}
             >
               {selectedTrip && (
-                <>
+                <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
                   {/* Modal Header */}
                   <View style={styles.modalHeader}>
                     <View style={styles.modalTitleContainer}>
@@ -610,7 +627,7 @@ export default function DriverTrips() {
                     <View style={styles.modalRow}>
                       <Users size={16} color={Colors.primary} />
                       <Text style={styles.modalText}>
-                        {selectedTrip.available_seats}/{selectedTrip.total_seats} seats available
+                        {selectedTrip.available_seats}/{selectedTrip.total_seats ?? 0} seats available
                       </Text>
                     </View>
                     <View style={styles.modalRow}>
@@ -628,13 +645,38 @@ export default function DriverTrips() {
                     </View>
                   </View>
 
+                  {/* Rider Who Booked This Trip */}
+                  <View style={{ marginBottom: 16, padding: 12, backgroundColor: '#f5f5f5', borderRadius: 8 }}>
+                    <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 6 }}>Rider Who Booked This Trip</Text>
+                    {tripBooking && tripBooking.profiles ? (
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        {tripBooking.profiles.avatar_url ? (
+                          <Image
+                            source={{ uri: tripBooking.profiles.avatar_url }}
+                            style={{ width: 48, height: 48, borderRadius: 24, marginRight: 12 }}
+                          />
+                        ) : null}
+                        <View>
+                          <Text style={{ fontSize: 15, fontWeight: '600' }}>{tripBooking.profiles.first_name} {tripBooking.profiles.last_name}</Text>
+                          {tripBooking.profiles.email ? (
+                            <Text style={{ color: '#555' }}>{tripBooking.profiles.email}</Text>
+                          ) : null}
+                          {tripBooking.profiles.phone ? (
+                            <Text style={{ color: '#555' }}>{tripBooking.profiles.phone}</Text>
+                          ) : null}
+                        </View>
+                      </View>
+                    ) : (
+                      <Text style={{ color: '#888' }}>No one has booked this trip yet.</Text>
+                    )}
+                  </View>
+
                   {/* Bids Section */}
                   <View style={styles.bidsSection}>
                     <View style={styles.bidsSectionHeader}>
                       <Award size={16} color={Colors.warning} />
                       <Text style={styles.modalSubtitle}>Bids for this trip</Text>
                     </View>
-                    
                     {loadingBids ? (
                       <View style={styles.loadingContainer}>
                         <ActivityIndicator size="small" color={Colors.primary} />
@@ -655,7 +697,7 @@ export default function DriverTrips() {
                       </View>
                     )}
                   </View>
-                </>
+                </ScrollView>
               )}
             </LinearGradient>
           </View>
@@ -1121,6 +1163,11 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.base,
     fontFamily: Fonts.heading.medium,
     color: Colors.text,
+  },
+  riderPhone: {
+    fontSize: FontSizes.sm,
+    fontFamily: Fonts.body.regular,
+    color: Colors.textSecondary,
   },
   bidStatusBadge: {
     paddingHorizontal: 8,

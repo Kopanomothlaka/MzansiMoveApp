@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "MzansiMove",
-    "slug": "mzansi-move-passenger",
+    "name": "MzansiMovePassenger",
+    "slug": "mzansimovepassenger",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -27,7 +27,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "54fa313d-efb9-4470-ba89-ebd86c87cf19"
+        "projectId": "b9b27b3b-b6a7-4c9f-b050-ebc2ab59bfc5"
       }
     },
     "owner": "kaypee10096",
@@ -35,7 +35,8 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/54fa313d-efb9-4470-ba89-ebd86c87cf19"
-    }
+      "url": "https://u.expo.dev/b9b27b3b-b6a7-4c9f-b050-ebc2ab59bfc5"
+    },
+    "scheme": "mzansimove-passenger"
   }
 }

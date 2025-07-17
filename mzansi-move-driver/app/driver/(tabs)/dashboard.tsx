@@ -160,7 +160,7 @@ export default function DriverDashboard() {
             available_seats: seats,
             total_seats: seats,
             description: tripForm.description.trim() || null,
-            status: 'pending', // Set as pending until rider accepts or bids
+            status: 'active', // Set as active so passengers can see it
             vehicle_make: driverProfile?.vehicle_make || null,
             vehicle_model: driverProfile?.vehicle_model || null,
             license_plate: driverProfile?.license_plate || null
