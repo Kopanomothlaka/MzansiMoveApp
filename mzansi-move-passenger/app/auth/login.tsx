@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -86,166 +86,168 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient colors={[Colors.background, Colors.surface]} style={styles.gradient}>
-        {/* Decorative Header */}
-        <View style={styles.decorativeHeader}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft size={24} color={Colors.text} />
-          </TouchableOpacity>
-          <View style={styles.headerDecoration}>
-            <Star size={16} color={Colors.primary} style={styles.decorStar1} />
-            <Zap size={20} color={Colors.secondary} style={styles.decorZap} />
-            <Star size={12} color={Colors.warning} style={styles.decorStar2} />
-          </View>
-        </View>
-
-        {/* Hero Section */}
-        <View style={styles.heroSection}>
-          <View style={styles.logoContainer}>
-            <LinearGradient
-              colors={[Colors.primary, Colors.secondary]}
-              style={styles.logoCircle}
-            >
-              <Shield size={32} color={Colors.background} />
-            </LinearGradient>
-          </View>
-          <Text style={styles.title}>Welcome Back!</Text>
-          <Text style={styles.subtitle}>Sign in to continue your journey</Text>
-        </View>
-
-        <View style={styles.content}>
-          {/* Form */}
-          <View style={styles.form}>
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email Address</Text>
-              <View style={styles.inputWrapper}>
-                <Mail size={20} color={Colors.textSecondary} style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="Enter your email"
-                  placeholderTextColor={Colors.textSecondary}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Password</Text>
-              <View style={styles.inputWrapper}>
-                <Lock size={20} color={Colors.textSecondary} style={styles.inputIcon} />
-                <TextInput
-                  style={styles.passwordInput}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="Enter your password"
-                  placeholderTextColor={Colors.textSecondary}
-                  secureTextEntry={!showPassword}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
-                  style={styles.eyeButton}
-                >
-                  {showPassword ? (
-                    <EyeOff size={20} color={Colors.textSecondary} />
-                  ) : (
-                    <Eye size={20} color={Colors.textSecondary} />
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Forgot Password */}
-            <TouchableOpacity 
-              onPress={() => router.push('/auth/reset-password')}
-              style={styles.forgotPassword}
-            >
-              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+        <LinearGradient colors={[Colors.background, Colors.surface]} style={styles.gradient}>
+          {/* Decorative Header */}
+          <View style={styles.decorativeHeader}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <ArrowLeft size={24} color={Colors.text} />
             </TouchableOpacity>
+            <View style={styles.headerDecoration}>
+              <Star size={16} color={Colors.primary} style={styles.decorStar1} />
+              <Zap size={20} color={Colors.secondary} style={styles.decorZap} />
+              <Star size={12} color={Colors.warning} style={styles.decorStar2} />
+            </View>
+          </View>
 
-            {/* Login Button */}
-            <TouchableOpacity
-              style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
-              onPress={handleLogin}
-              disabled={isLoading}
-            >
+          {/* Hero Section */}
+          <View style={styles.heroSection}>
+            <View style={styles.logoContainer}>
               <LinearGradient
                 colors={[Colors.primary, Colors.secondary]}
-                style={styles.buttonGradient}
+                style={styles.logoCircle}
               >
-                <Text style={styles.loginButtonText}>
-                  {isLoading ? 'Signing in...' : 'Sign In'}
-                </Text>
+                <Shield size={32} color={Colors.background} />
               </LinearGradient>
-            </TouchableOpacity>
-
-            {/* Biometric Login */}
-            <TouchableOpacity
-              style={styles.biometricButton}
-              onPress={handleBiometricLogin}
-            >
-              <LinearGradient
-                colors={['rgba(37,99,235,0.1)', 'rgba(59,130,246,0.05)']}
-                style={styles.biometricGradient}
-              >
-                <Fingerprint size={24} color={Colors.primary} />
-                <Text style={styles.biometricText}>Use Face ID / Touch ID</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-
-          {/* Divider */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <View style={styles.dividerTextContainer}>
-              <Text style={styles.dividerText}>or continue with</Text>
             </View>
-            <View style={styles.dividerLine} />
+            <Text style={styles.title}>Welcome Back!</Text>
+            <Text style={styles.subtitle}>Sign in to continue your journey</Text>
           </View>
 
-          {/* Social Login */}
-          <View style={styles.socialContainer}>
-            <TouchableOpacity
-              style={[styles.socialButton, socialLoading === 'google' && styles.socialButtonDisabled]}
-              onPress={() => handleSocialLogin('google')}
-              disabled={socialLoading !== null}
-            >
-              <LinearGradient
-                colors={['#DB4437', '#C23321']}
-                style={styles.socialButtonGradient}
-              >
-                <Text style={styles.socialButtonText}>
-                  {socialLoading === 'google' ? '...' : 'G'}
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.socialButton, socialLoading === 'facebook' && styles.socialButtonDisabled]}
-              onPress={() => handleSocialLogin('facebook')}
-              disabled={socialLoading !== null}
-            >
-              <LinearGradient
-                colors={['#4267B2', '#365899']}
-                style={styles.socialButtonGradient}
-              >
-                <Text style={styles.socialButtonText}>
-                  {socialLoading === 'facebook' ? '...' : 'f'}
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
+          <View style={styles.content}>
+            {/* Form */}
+            <View style={styles.form}>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Email Address</Text>
+                <View style={styles.inputWrapper}>
+                  <Mail size={20} color={Colors.textSecondary} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="Enter your email"
+                    placeholderTextColor={Colors.textSecondary}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
+              </View>
 
-          {/* Sign Up Link */}
-          <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => router.push('/auth/signup')}>
-              <Text style={styles.signupLink}>Sign up</Text>
-            </TouchableOpacity>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Password</Text>
+                <View style={styles.inputWrapper}>
+                  <Lock size={20} color={Colors.textSecondary} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.passwordInput}
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="Enter your password"
+                    placeholderTextColor={Colors.textSecondary}
+                    secureTextEntry={!showPassword}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                    style={styles.eyeButton}
+                  >
+                    {showPassword ? (
+                      <EyeOff size={20} color={Colors.textSecondary} />
+                    ) : (
+                      <Eye size={20} color={Colors.textSecondary} />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Forgot Password */}
+              <TouchableOpacity 
+                onPress={() => router.push('/auth/reset-password')}
+                style={styles.forgotPassword}
+              >
+                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+              </TouchableOpacity>
+
+              {/* Login Button */}
+              <TouchableOpacity
+                style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
+                onPress={handleLogin}
+                disabled={isLoading}
+              >
+                <LinearGradient
+                  colors={[Colors.primary, Colors.secondary]}
+                  style={styles.buttonGradient}
+                >
+                  <Text style={styles.loginButtonText}>
+                    {isLoading ? 'Signing in...' : 'Sign In'}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              {/* Biometric Login */}
+              <TouchableOpacity
+                style={styles.biometricButton}
+                onPress={handleBiometricLogin}
+              >
+                <LinearGradient
+                  colors={['rgba(37,99,235,0.1)', 'rgba(59,130,246,0.05)']}
+                  style={styles.biometricGradient}
+                >
+                  <Fingerprint size={24} color={Colors.primary} />
+                  <Text style={styles.biometricText}>Use Face ID / Touch ID</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+
+            {/* Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <View style={styles.dividerTextContainer}>
+                <Text style={styles.dividerText}>or continue with</Text>
+              </View>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Social Login */}
+            <View style={styles.socialContainer}>
+              <TouchableOpacity
+                style={[styles.socialButton, socialLoading === 'google' && styles.socialButtonDisabled]}
+                onPress={() => handleSocialLogin('google')}
+                disabled={socialLoading !== null}
+              >
+                <LinearGradient
+                  colors={['#DB4437', '#C23321']}
+                  style={styles.socialButtonGradient}
+                >
+                  <Text style={styles.socialButtonText}>
+                    {socialLoading === 'google' ? '...' : 'G'}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.socialButton, socialLoading === 'facebook' && styles.socialButtonDisabled]}
+                onPress={() => handleSocialLogin('facebook')}
+                disabled={socialLoading !== null}
+              >
+                <LinearGradient
+                  colors={['#4267B2', '#365899']}
+                  style={styles.socialButtonGradient}
+                >
+                  <Text style={styles.socialButtonText}>
+                    {socialLoading === 'facebook' ? '...' : 'f'}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+
+            {/* Sign Up Link */}
+            <View style={styles.signupContainer}>
+              <Text style={styles.signupText}>Don't have an account? </Text>
+              <TouchableOpacity onPress={() => router.push('/auth/signup')}>
+                <Text style={styles.signupLink}>Sign up</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </LinearGradient>
+        </LinearGradient>
+      </ScrollView>
     </SafeAreaView>
   );
 }

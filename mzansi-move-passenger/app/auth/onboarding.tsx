@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image, ScrollView, ColorValue } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -44,102 +44,104 @@ export default function OnboardingScreen() {
   ];
 
   return (
-    <LinearGradient colors={[Colors.primary, Colors.secondary, Colors.purple]} style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.content}>
-          {/* Animated Header */}
-          <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <LinearGradient
-                colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
-                style={styles.logoCircle}
-              >
-                <Car size={48} color={Colors.background} />
-              </LinearGradient>
-              <View style={styles.sparkles}>
-                <Zap size={16} color={Colors.background} style={styles.sparkle1} />
-                <Star size={12} color={Colors.background} style={styles.sparkle2} />
-                <Zap size={14} color={Colors.background} style={styles.sparkle3} />
-              </View>
-            </View>
-            <Text style={styles.logo}>MzansiMove</Text>
-            <Text style={styles.tagline}>Your Journey, Your Price</Text>
-          </View>
-
-          {/* Hero Image */}
-          <View style={styles.heroContainer}>
-            <View style={styles.imageWrapper}>
-              <Image 
-                source={{ uri: 'https://images.pexels.com/photos/1170412/pexels-photo-1170412.jpeg?auto=compress&cs=tinysrgb&w=400' }}
-                style={styles.heroImage}
-              />
-              <LinearGradient
-                colors={['transparent', 'rgba(37,99,235,0.3)']}
-                style={styles.imageOverlay}
-              />
-            </View>
-          </View>
-
-          {/* Features Grid */}
-          <View style={styles.featuresContainer}>
-            {features.map((feature, index) => (
-              <View key={index} style={styles.featureCard}>
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+      <LinearGradient colors={[Colors.primary as string, Colors.secondary as string, Colors.purple as string]} style={styles.container}>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.content}>
+            {/* Animated Header */}
+            <View style={styles.header}>
+              <View style={styles.logoContainer}>
                 <LinearGradient
-                  colors={['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.05)']}
-                  style={styles.featureGradient}
+                  colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
+                  style={styles.logoCircle}
                 >
-                  <View style={styles.featureIconContainer}>
-                    <LinearGradient
-                      colors={feature.gradient}
-                      style={styles.featureIconBg}
-                    >
-                      <feature.icon size={24} color={Colors.background} />
-                    </LinearGradient>
-                  </View>
-                  <Text style={styles.featureTitle}>{feature.title}</Text>
-                  <Text style={styles.featureDescription}>{feature.description}</Text>
+                  <Car size={48} color={Colors.background} />
                 </LinearGradient>
-              </View>
-            ))}
-          </View>
-
-          {/* Benefits Row */}
-          <View style={styles.benefitsContainer}>
-            {benefits.map((benefit, index) => (
-              <View key={index} style={styles.benefitItem}>
-                <View style={styles.benefitIcon}>
-                  <benefit.icon size={16} color={Colors.background} />
+                <View style={styles.sparkles}>
+                  <Zap size={16} color={Colors.background} style={styles.sparkle1} />
+                  <Star size={12} color={Colors.background} style={styles.sparkle2} />
+                  <Zap size={14} color={Colors.background} style={styles.sparkle3} />
                 </View>
-                <Text style={styles.benefitText}>{benefit.text}</Text>
               </View>
-            ))}
-          </View>
+              <Text style={styles.logo}>MzansiMove</Text>
+              <Text style={styles.tagline}>Your Journey, Your Price</Text>
+            </View>
 
-          {/* CTA Buttons */}
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity 
-              style={styles.primaryButton}
-              onPress={() => router.push('/auth/signup')}
-            >
-              <LinearGradient
-                colors={['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.8)']}
-                style={styles.primaryButtonGradient}
+            {/* Hero Image */}
+            <View style={styles.heroContainer}>
+              <View style={styles.imageWrapper}>
+                <Image 
+                  source={{ uri: 'https://images.pexels.com/photos/1170412/pexels-photo-1170412.jpeg?auto=compress&cs=tinysrgb&w=400' }}
+                  style={styles.heroImage}
+                />
+                <LinearGradient
+                  colors={['transparent', 'rgba(37,99,235,0.3)']}
+                  style={styles.imageOverlay}
+                />
+              </View>
+            </View>
+
+            {/* Features Grid */}
+            <View style={styles.featuresContainer}>
+              {features.map((feature, index) => (
+                <View key={index} style={styles.featureCard}>
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.05)'] as [string, string]}
+                    style={styles.featureGradient}
+                  >
+                    <View style={styles.featureIconContainer}>
+                      <LinearGradient
+                        colors={feature.gradient as [string, string]}
+                        style={styles.featureIconBg}
+                      >
+                        <feature.icon size={24} color={Colors.background} />
+                      </LinearGradient>
+                    </View>
+                    <Text style={styles.featureTitle}>{feature.title}</Text>
+                    <Text style={styles.featureDescription}>{feature.description}</Text>
+                  </LinearGradient>
+                </View>
+              ))}
+            </View>
+
+            {/* Benefits Row */}
+            <View style={styles.benefitsContainer}>
+              {benefits.map((benefit, index) => (
+                <View key={index} style={styles.benefitItem}>
+                  <View style={styles.benefitIcon}>
+                    <benefit.icon size={16} color={Colors.background} />
+                  </View>
+                  <Text style={styles.benefitText}>{benefit.text}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* CTA Buttons */}
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity 
+                style={styles.primaryButton}
+                onPress={() => router.push('/auth/signup')}
               >
-                <Zap size={20} color={Colors.primary} />
-                <Text style={styles.primaryButtonText}>Get Started</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.secondaryButton}
-              onPress={() => router.push('/auth/login')}
-            >
-              <Text style={styles.secondaryButtonText}>I have an account</Text>
-            </TouchableOpacity>
+                <LinearGradient
+                  colors={['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.8)'] as [string, string]}
+                  style={styles.primaryButtonGradient}
+                >
+                  <Zap size={20} color={Colors.primary} />
+                  <Text style={styles.primaryButtonText}>Get Started</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.secondaryButton}
+                onPress={() => router.push('/auth/login')}
+              >
+                <Text style={styles.secondaryButtonText}>I have an account</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </SafeAreaView>
-    </LinearGradient>
+        </SafeAreaView>
+      </LinearGradient>
+    </ScrollView>
   );
 }
 
