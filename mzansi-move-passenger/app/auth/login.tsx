@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Eye, EyeOff, Fingerprint, ArrowLeft } from 'lucide-react-native';
+import { Eye, EyeOff, Fingerprint, ArrowLeft, Mail, Lock, Shield, Zap, Star } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Fonts, FontSizes } from '@/constants/Fonts';
 import { supabase } from '@/constants/supabase';
@@ -35,14 +35,12 @@ export default function LoginScreen() {
       }
 
       if (data.user) {
-        // Check if user is a driver
         const { data: driverProfile, error: driverError } = await supabase
           .from('driver_profiles')
           .select('id')
           .eq('user_id', data.user.id)
           .single();
         if (driverProfile) {
-          // User is a driver, sign out and show error
           await supabase.auth.signOut();
           Alert.alert('Access Denied', 'Driver accounts are not allowed to log in on the rider app.');
           return;
@@ -78,9 +76,6 @@ export default function LoginScreen() {
         Alert.alert('Error', error.message);
         return;
       }
-
-      // The OAuth flow will redirect to the app
-      // We don't need to navigate here as the redirect will handle it
     } catch (error) {
       console.error('Social login error:', error);
       Alert.alert('Error', 'An unexpected error occurred during social login');
@@ -92,34 +87,55 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient colors={[Colors.background, Colors.surface]} style={styles.gradient}>
-        {/* Header */}
-        <View style={styles.header}>
+        {/* Decorative Header */}
+        <View style={styles.decorativeHeader}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <ArrowLeft size={24} color={Colors.text} />
           </TouchableOpacity>
-          <Text style={styles.title}>Welcome Back</Text>
-          <View style={{ width: 24 }} />
+          <View style={styles.headerDecoration}>
+            <Star size={16} color={Colors.primary} style={styles.decorStar1} />
+            <Zap size={20} color={Colors.secondary} style={styles.decorZap} />
+            <Star size={12} color={Colors.warning} style={styles.decorStar2} />
+          </View>
+        </View>
+
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <View style={styles.logoContainer}>
+            <LinearGradient
+              colors={[Colors.primary, Colors.secondary]}
+              style={styles.logoCircle}
+            >
+              <Shield size={32} color={Colors.background} />
+            </LinearGradient>
+          </View>
+          <Text style={styles.title}>Welcome Back!</Text>
+          <Text style={styles.subtitle}>Sign in to continue your journey</Text>
         </View>
 
         <View style={styles.content}>
           {/* Form */}
           <View style={styles.form}>
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email</Text>
-              <TextInput
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Enter your email"
-                placeholderTextColor={Colors.textSecondary}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
+              <Text style={styles.label}>Email Address</Text>
+              <View style={styles.inputWrapper}>
+                <Mail size={20} color={Colors.textSecondary} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="Enter your email"
+                  placeholderTextColor={Colors.textSecondary}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
             </View>
 
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Password</Text>
-              <View style={styles.passwordContainer}>
+              <View style={styles.inputWrapper}>
+                <Lock size={20} color={Colors.textSecondary} style={styles.inputIcon} />
                 <TextInput
                   style={styles.passwordInput}
                   value={password}
@@ -170,15 +186,22 @@ export default function LoginScreen() {
               style={styles.biometricButton}
               onPress={handleBiometricLogin}
             >
-              <Fingerprint size={24} color={Colors.primary} />
-              <Text style={styles.biometricText}>Use Face ID / Touch ID</Text>
+              <LinearGradient
+                colors={['rgba(37,99,235,0.1)', 'rgba(59,130,246,0.05)']}
+                style={styles.biometricGradient}
+              >
+                <Fingerprint size={24} color={Colors.primary} />
+                <Text style={styles.biometricText}>Use Face ID / Touch ID</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
 
           {/* Divider */}
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or continue with</Text>
+            <View style={styles.dividerTextContainer}>
+              <Text style={styles.dividerText}>or continue with</Text>
+            </View>
             <View style={styles.dividerLine} />
           </View>
 
@@ -189,18 +212,28 @@ export default function LoginScreen() {
               onPress={() => handleSocialLogin('google')}
               disabled={socialLoading !== null}
             >
-              <Text style={[styles.socialButtonText, styles.googleText]}>
-                {socialLoading === 'google' ? '...' : 'G'}
-              </Text>
+              <LinearGradient
+                colors={['#DB4437', '#C23321']}
+                style={styles.socialButtonGradient}
+              >
+                <Text style={styles.socialButtonText}>
+                  {socialLoading === 'google' ? '...' : 'G'}
+                </Text>
+              </LinearGradient>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.socialButton, socialLoading === 'facebook' && styles.socialButtonDisabled]}
               onPress={() => handleSocialLogin('facebook')}
               disabled={socialLoading !== null}
             >
-              <Text style={[styles.socialButtonText, styles.facebookText]}>
-                {socialLoading === 'facebook' ? '...' : 'f'}
-              </Text>
+              <LinearGradient
+                colors={['#4267B2', '#365899']}
+                style={styles.socialButtonGradient}
+              >
+                <Text style={styles.socialButtonText}>
+                  {socialLoading === 'facebook' ? '...' : 'f'}
+                </Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
 
@@ -225,25 +258,75 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
-  header: {
+  decorativeHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 24,
     paddingTop: 20,
+    position: 'relative',
   },
   backButton: {
     padding: 8,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  headerDecoration: {
+    position: 'relative',
+    width: 60,
+    height: 40,
+  },
+  decorStar1: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+  },
+  decorZap: {
+    position: 'absolute',
+    top: 10,
+    right: 20,
+  },
+  decorStar2: {
+    position: 'absolute',
+    bottom: 0,
+    right: 10,
+  },
+  heroSection: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  logoContainer: {
+    marginBottom: 24,
+  },
+  logoCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   title: {
     fontSize: FontSizes['2xl'],
     fontFamily: Fonts.heading.bold,
     color: Colors.text,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: FontSizes.base,
+    fontFamily: Fonts.body.regular,
+    color: Colors.textSecondary,
+    textAlign: 'center',
   },
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 40,
   },
   form: {
     marginBottom: 32,
@@ -257,33 +340,34 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: 8,
   },
-  input: {
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.border,
-    borderRadius: 12,
-    padding: 16,
+    paddingHorizontal: 16,
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 16,
     fontSize: FontSizes.base,
     fontFamily: Fonts.body.regular,
     color: Colors.text,
-    backgroundColor: Colors.background,
-  },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 12,
-    backgroundColor: Colors.background,
   },
   passwordInput: {
     flex: 1,
-    padding: 16,
+    paddingVertical: 16,
     fontSize: FontSizes.base,
     fontFamily: Fonts.body.regular,
     color: Colors.text,
   },
   eyeButton: {
-    padding: 16,
+    padding: 4,
   },
   forgotPassword: {
     alignSelf: 'flex-end',
@@ -298,6 +382,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 20,
+    elevation: 4,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   loginButtonDisabled: {
     opacity: 0.7,
@@ -312,20 +401,22 @@ const styles = StyleSheet.create({
     color: Colors.background,
   },
   biometricButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  biometricGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    borderRadius: 12,
-    backgroundColor: 'transparent',
+    gap: 8,
   },
   biometricText: {
     fontSize: FontSizes.base,
     fontFamily: Fonts.body.medium,
     color: Colors.primary,
-    marginLeft: 8,
   },
   divider: {
     flexDirection: 'row',
@@ -337,11 +428,14 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Colors.border,
   },
+  dividerTextContainer: {
+    backgroundColor: Colors.background,
+    paddingHorizontal: 16,
+  },
   dividerText: {
     fontSize: FontSizes.sm,
     fontFamily: Fonts.body.regular,
     color: Colors.textSecondary,
-    marginHorizontal: 16,
   },
   socialContainer: {
     flexDirection: 'row',
@@ -350,27 +444,33 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   socialButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 12,
+    overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   socialButtonDisabled: {
     opacity: 0.7,
   },
+  socialButtonGradient: {
+    width: 56,
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   socialButtonText: {
     fontSize: FontSizes.xl,
     fontFamily: Fonts.heading.bold,
-    color: Colors.primary,
+    color: Colors.background,
   },
   signupContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingBottom: 20,
   },
   signupText: {
     fontSize: FontSizes.base,
@@ -381,13 +481,5 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.base,
     fontFamily: Fonts.body.medium,
     color: Colors.primary,
-  },
-  googleText: {
-    color: '#DB4437', // Google red
-    fontWeight: 'bold',
-  },
-  facebookText: {
-    color: '#4267B2', // Facebook blue
-    fontWeight: 'bold',
   },
 });
